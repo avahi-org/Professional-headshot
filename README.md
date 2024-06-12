@@ -17,6 +17,7 @@ The response is a json that contains the id of the model as well as other metada
 
 Example:
 
+<pre>
 {
     "id": 1372126,
     "title": "testtune",
@@ -53,6 +54,7 @@ Example:
         "https://sdbooth2-production.s3.amazonaws.com/6uw86pcerfch6fr13jyrohckoql6"
     ]
 }
+</pre>
 
 IMPORTANT. 'sks' is the token that is needed for training and it needs to be included in the inference call.
 
@@ -75,6 +77,7 @@ python astria.py gen --steps 80 --download 1372126 "sks man headshot of a bankin
 
 As a response, you get a json file with metadata
 
+<pre>
 {
     "id": 17036803,
     "callback": "",
@@ -108,3 +111,4 @@ INFO:root:1372126_17036833_2945_4.jpg DONE
 INFO:root:1372126_17036833_2945_5.jpg DONE
 INFO:root:1372126_17036833_2945_6.jpg DONE
 INFO:root:1372126_17036833_2945_7.jpg DONE
+</pre>

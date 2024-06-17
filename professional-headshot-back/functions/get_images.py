@@ -31,7 +31,7 @@ class GetImages():
     folder_name: str
     directory: str
     image_extensions: list[str] = field(
-        default_factory=lambda: ['*.j*', '*.png', '*.gif', '*.bmp', '*.tiff'])
+        default_factory=lambda: ['*.j*', '*.png', '*.gif', '*.bmp', '*.tiff', '*.heic'])
     images_path: list[str] = field(default_factory=list)
 
     def process(self):

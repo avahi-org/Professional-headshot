@@ -1,38 +1,47 @@
-from functions.get_images import GetImages
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+from functions.run_training import RunTraining
 import os
-import subprocess
-import sys
 
-def main():
-    """
-    Define the initial values
-    """
-    directory = os.getcwd()
-    num_args = len(sys.argv)
-    tune_job_name = sys.argv[1] if num_args > 2 else "MyTuneJob"
-    classname = sys.argv[2] if num_args > 3 else "man"
-    folder_name = sys.argv[-1]
-    command_list = ["python", "functions/astria.py",
-                    "tune", tune_job_name, classname]
+app = FastAPI()
 
-    """
-    Get the images from the folder
-    """
-    images = (
-        GetImages(
-            folder_name=folder_name,
-            directory=directory
-            )
+# Allow CORS for all origins (for simplicity)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    with open("templates/index.html", "r") as f:
+        html_content = f.read()
+    return HTMLResponse(content=html_content)
+
+@app.post("/submit-strings")
+async def submit_strings(
+    api_key: str = Form(...),
+    job_name: str = Form(...),
+    classname: str = Form(...),
+    folder_path: str = Form(...)
+):
+    os.environ['ASTRIA_API_TOKEN'] = api_key
+
+    (
+        RunTraining(
+            job_name=job_name,
+            classname=classname
+        )
         .process()
         .get()
     )
 
-    command_list.extend(images)
+    return {"message": "Success!"}
 
-    """
-    Call astria.py file that is in the functions folder
-    """
-    subprocess.run(command_list)
 
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

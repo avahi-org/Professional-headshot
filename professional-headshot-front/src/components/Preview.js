@@ -21,17 +21,6 @@ const Preview = ({ images, onRemove, styles, onStyleChange }) => {
           </div>
         ))}
       </div>
-      <div className="flex justify-around mt-4">
-        {styles.map((style, index) => (
-          <button
-            key={index}
-            onClick={() => onStyleChange(style)}
-            className="bg-gray-200 text-gray-800 py-1 px-2 rounded hover:bg-gray-300 transition"
-          >
-            {style}
-          </button>
-        ))}
-      </div>
     </div>
   );
 };

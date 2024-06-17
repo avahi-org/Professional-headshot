@@ -2,6 +2,7 @@ from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from functions.run_training import RunTraining
+from functions.get_tunes import GetTunes
 import os
 
 app = FastAPI()
@@ -21,6 +22,16 @@ async def read_root():
         html_content = f.read()
     return HTMLResponse(content=html_content)
 
+@app.post("/set-key")
+async def set_key(
+    api_key: str = Form(...),
+):
+    global astria_api_key
+
+    astria_api_key = api_key
+
+    return {"message": "Success!"}
+
 @app.post("/submit-strings")
 async def submit_strings(
     api_key: str = Form(...),
@@ -28,7 +39,7 @@ async def submit_strings(
     classname: str = Form(...),
     folder_path: str = Form(...)
 ):
-    os.environ['ASTRIA_API_TOKEN'] = api_key
+    os.environ['ASTRIA_API_TOKEN'] = astria_api_key
 
     (
         RunTraining(
@@ -41,6 +52,17 @@ async def submit_strings(
 
     return {"message": "Success!"}
 
+@app.post("/get-ids")
+async def get_ids():
+    response_dict = (
+        GetTunes(astria_api_key=astria_api_key)
+        .process()
+        .get()
+    )
+
+    print(response_dict)
+
+    return {"message": "Success!"}
 
 if __name__ == "__main__":
     import uvicorn

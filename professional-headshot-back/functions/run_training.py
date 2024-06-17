@@ -3,6 +3,9 @@ from functions.get_images import GetImages
 from functions.download_images import DownloadImages
 import subprocess
 import os
+import sys
+from io import StringIO
+import re
 
 
 @dataclass
@@ -55,7 +58,24 @@ class RunTraining:
         """
         Call astria.py file that is in the functions folder
         """
-        subprocess.run(command_list)
+        # write_stdout = StringIO()
+        # sys.stdout = write_stdout
+        process = subprocess.Popen(command_list, stdout=subprocess.PIPE, text=True)
+        command_output = process.stdout.read()
+        print(command_output)
+        print("-------------")
+        for i in range(10):
+            print(command_output[i])
+
+        # expression = r'(id)|(title)|(eta)|(created)'
+        # test2 = ''.join(write_stdout.getvalue())
+        # lista = test2.split("\n")
+        # for i in lista:
+        #     if bool(re.search(expression, i)):
+        #         print(i)
+        #         result = re.search(r'\d[^"]*', i)
+        #         if result:
+        #             print(result.group(0))
 
         return self
 

@@ -24,16 +24,14 @@ class Astria():
 class GetTunes:
     astria_api_key: str
     response_dict: dict = field(default_factory=lambda: {
-        'job_name': [],
-        'job_id': []
+        'available_models': {},
     })
 
     def process(self):
         astria = Astria(apikey=self.astria_api_key)
         all_tune_jobs = astria.listtune().json()
         for tunejob in all_tune_jobs:
-            self.response_dict['job_name'].append(tunejob['title'])
-            self.response_dict['job_id'].append(tunejob['id'])
+            self.response_dict['available_models'][tunejob['title']] = tunejob['id']
 
         return self
     

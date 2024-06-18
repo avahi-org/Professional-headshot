@@ -15,6 +15,7 @@ class RunTraining:
     job_name: str =  "MyTuneJob"
     classname: str = "man"
     bucket_name: str = "backend-professional-headshot-test-avahi"
+    path: str = "images/"
 
     def process(self):
 
@@ -32,7 +33,7 @@ class RunTraining:
         (
             DownloadImages(
                 BUCKET_NAME=self.bucket_name,
-                PATH='images/'
+                PATH=self.path
             )
             .process()
             .get()

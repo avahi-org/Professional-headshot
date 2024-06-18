@@ -1,0 +1,23 @@
+import React from "react";
+import Lottie from "react-lottie-player";
+import animationData from "../assets/lottie/reveal-loading.json"; // Replace with your Lottie JSON file path
+
+const LottieAnimation = ({ etaDuration }) => {
+  return (
+    <div className="flex flex-col items-center">
+      <Lottie
+        loop
+        animationData={animationData}
+        play
+        style={{ width: 200, height: 200 }}
+      />
+      <div className="text-2xl text-gray-700 mt-10">
+        <div className="animate-bounce">
+          Training the model... This may take approximately {etaDuration}.
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LottieAnimation;

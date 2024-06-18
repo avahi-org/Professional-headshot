@@ -22,6 +22,7 @@ def generate_images():
     api_key = data.get('apiKey')
     prompt = data.get('prompt')
     job_id = data.get('jobID')
+    classname = data.get('classname')
 
     def generate_thread(
             api_key: str,
@@ -32,7 +33,7 @@ def generate_images():
         Generate images
         """
 
-        prompt = "sks man " + prompt
+        prompt = f"sks {classname}"  + prompt
 
         (
             GenerateImages(
@@ -48,7 +49,7 @@ def generate_images():
         Get the path for the generated images
         """
 
-        folder_path = 'functions/'
+        folder_path = ''
         directory = os.getcwd()
         images = (
             GetImages(
@@ -62,15 +63,16 @@ def generate_images():
         with open(os.path.join(UPLOAD_FOLDER, 'output.json'), 'w') as f:
             json.dump(images, f)
         print("Training complete")
+        return images
 
-    threading.Thread(
-        target=generate_thread(
-            api_key=api_key,
-            prompt=prompt,
-            job_id=job_id
-        )).start()
+   
+    target = generate_thread(
+        api_key=api_key,
+        prompt=prompt,
+        job_id=job_id
+    )
 
-    return jsonify({'message': 'Training started'}), 200
+    return jsonify({'message': 'Image Generation is completed'},target), 200
 
 # Train the model
 

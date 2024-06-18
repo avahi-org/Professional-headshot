@@ -2,14 +2,15 @@ from flask import Flask, request, jsonify
 import os
 import threading
 import json
+from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
 from functions.get_tunes import GetTunes
 from functions.get_images import GetImages
 
 
-
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Allow requests from your frontend origin
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -59,7 +60,7 @@ def generate_images():
         )
 
         with open(os.path.join(UPLOAD_FOLDER, 'output.json'), 'w') as f:
-            json.dump([images], f)
+            json.dump(images, f)
         print("Training complete")
 
     threading.Thread(
@@ -79,8 +80,8 @@ def start_training():
     api_key = data.get('apiKey')
     job_name = data.get('jobName')
     classname = data.get('classname')
-    path = data.get('imagesInBucketPath')
-
+    path = data.get('imagesInBucketPath') + '/'
+ 
     # Set API KEY
     os.environ['ASTRIA_API_TOKEN'] = api_key
 
@@ -98,7 +99,7 @@ def start_training():
 
 # Return available models
 
-@app.route('/api/get-ids', methods=['POST'])
+@app.route('/api/get-ids', methods=['POST']) 
 async def get_ids():
     data = request.json
     api_key = data.get('apiKey')
@@ -107,7 +108,6 @@ async def get_ids():
         .process()
         .get()
     )
-
     return jsonify(response_dict), 200
 
 if __name__ == '__main__':

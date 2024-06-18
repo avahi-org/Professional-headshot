@@ -18,6 +18,8 @@ class GenerateImages:
                         "--steps", self.steps, "--download",
                         self.job_id, self.prompt]
         
+        print('command list',command_list)
+
         subprocess.run(command_list)
 
         return self

@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 from functions.get_images import GetImages
 from functions.download_images import DownloadImages
+from functions.get_info import GetInfo
 import subprocess
 import os
-import sys
-from io import StringIO
-import re
 
 
 @dataclass
@@ -56,28 +54,22 @@ class RunTraining:
         command_list.extend(images)
 
         """
-        Call astria.py file that is in the functions folder
+        Call astria.py file that is in the functions folder. Save the stdout in the variable
+        'command_output' to retrieve necessary information
         """
-        # write_stdout = StringIO()
-        # sys.stdout = write_stdout
         process = subprocess.Popen(command_list, stdout=subprocess.PIPE, text=True)
         command_output = process.stdout.read()
-        print(command_output)
-        print("-------------")
-        for i in range(10):
-            print(command_output[i])
 
-        # expression = r'(id)|(title)|(eta)|(created)'
-        # test2 = ''.join(write_stdout.getvalue())
-        # lista = test2.split("\n")
-        # for i in lista:
-        #     if bool(re.search(expression, i)):
-        #         print(i)
-        #         result = re.search(r'\d[^"]*', i)
-        #         if result:
-        #             print(result.group(0))
+        """
+        Obtain the important info (id, title and eta) from the training response
+        """
+        self.training_response = (
+            GetInfo(training_json=command_output)
+            .process()
+            .get()
+        )
 
         return self
 
-    def get(self) -> None:
-        return None
+    def get(self) -> dict:
+        return self.training_response

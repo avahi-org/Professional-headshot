@@ -12,8 +12,9 @@ const LottieAnimation = ({ etaDuration }) => {
         style={{ width: 200, height: 200 }}
       />
       <div className="text-2xl text-gray-700 mt-10">
+        <div className="animate-bounce">Training the model...</div>
         <div className="animate-bounce">
-          Training the model... This may take approximately {etaDuration}.
+          This may take approximately {etaDuration}.
         </div>
       </div>
     </div>

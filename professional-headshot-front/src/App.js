@@ -62,7 +62,7 @@ const App = () => {
 
     // Simulate API call to fetch ETA
     setTimeout(() => {
-      const eta = "0:00:30"; // Replace with actual ETA fetched from API
+      const eta = "0:01:30"; // Replace with actual ETA fetched from API
       setEtaDuration(formatEta(eta));
 
       // Simulate loading time based on ETA
@@ -235,7 +235,7 @@ const App = () => {
                         onClick={() => handleModelTypeChange(type)}
                         className={`py-4 px-8 font-sans font-medium text-xl rounded-lg ${
                           modelType === type
-                            ? "bg-purple-500 text-white font-bold"
+                            ? "bg-purple-500 text-white font-semibold"
                             : "bg-white border border-gray-300 text-gray-700"
                         } transition-transform transform hover:scale-105 hover:shadow-lg`}
                       >
@@ -275,7 +275,7 @@ const App = () => {
               Step 4: Generate Training Model
             </p>
             <div className="flex flex-col items-center mb-6 w-full">
-              <label className="mb-4 w-96 text-xl text-gray-700 text-start">
+              <label className="mb-4 w-96 font-sans font-semibold text-xl text-gray-700 text-start">
                 Prompt:
               </label>
               <div className="w-96 mb-4">
@@ -290,7 +290,7 @@ const App = () => {
                   classNamePrefix="react-select"
                 />
               </div>
-              <label className="mt-6 mb-4 text-xl text-gray-700 w-96 text-start">
+              <label className="mt-6 mb-4 text-xl font-sans font-semibold  text-gray-700 w-96 text-start">
                 Or enter your own prompt:
               </label>
               <input
@@ -312,10 +312,10 @@ const App = () => {
         )}
         {step === 5 && (
           <div className="card text-center">
-            {isLoading ? (
+            {!isLoading ? (
               <div className="flex flex-col items-center">
                 <Oval color="rgb(168 85 247)" height={180} width={100} />
-                <p className="text-2xl text-gray-700 mt-2">
+                <p className="text-2xl font-sans font-semibold text-gray-700 mt-2">
                   The photos will be generated in a few minutes...
                 </p>
               </div>

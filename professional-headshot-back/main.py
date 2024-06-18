@@ -5,6 +5,11 @@ from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
 from functions.get_tunes import GetTunes
 import os
+import subprocess
+import boto3
+import botocore
+from botocore import UNSIGNED
+from botocore.config import Config
 
 app = FastAPI()
 

@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
 import os
-import threading
 import json
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
 from functions.get_tunes import GetTunes
 from functions.get_images import GetImages
+from functions.upload_images import UploadImages
+from functions.delete_images import DeleteImages
 
 
 app = Flask(__name__)
@@ -33,7 +34,7 @@ def generate_images():
         Generate images
         """
 
-        prompt = f"sks {classname}"  + prompt
+        prompt = f"sks {classname} "  + prompt
 
         (
             GenerateImages(
@@ -65,14 +66,28 @@ def generate_images():
         print("Training complete")
         return images
 
-   
-    target = generate_thread(
+    images = generate_thread(
         api_key=api_key,
         prompt=prompt,
         job_id=job_id
     )
 
-    return jsonify({'message': 'Image Generation is completed'},target), 200
+    (
+        UploadImages(
+            images=images,
+            object_prefix='images-test/')
+        .process()
+        .get()
+    )
+
+    (
+        DeleteImages(images=images)
+        .process()
+        .get()
+    )
+
+
+    return jsonify({'message': 'Image Generation is completed'}, ), 200
 
 # Train the model
 

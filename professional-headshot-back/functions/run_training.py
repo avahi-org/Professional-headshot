@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from functions.get_images import GetImages
 from functions.download_images import DownloadImages
+from functions.delete_images import DeleteImages
 from functions.get_info import GetInfo
 import subprocess
 import os
@@ -66,6 +67,12 @@ class RunTraining:
         """
         self.training_response = (
             GetInfo(training_json=command_output)
+            .process()
+            .get()
+        )
+
+        (
+            DeleteImages(images=images)
             .process()
             .get()
         )

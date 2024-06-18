@@ -23,7 +23,6 @@ const Upload = ({ onUpload }) => {
 
       if (validFiles.length > 0) {
         onUpload(validFiles);
-        toast.success(`${validFiles.length} images uploaded successfully.`);
       }
     },
     [onUpload]

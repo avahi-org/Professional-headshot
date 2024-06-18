@@ -10,9 +10,27 @@ import ProgressBar from "./components/ProgressBar";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
 import { Oval } from "react-loader-spinner";
 import Select from "react-select";
+import LottieAnimation from "./components/LottieAnimation";
 
 const modelTypes = ["man", "woman"];
 const prompts = ["corporate", "casual", "formal"];
+
+const formatEta = (eta) => {
+  const [hours, minutes, seconds] = eta.split(":").map(Number);
+  let result = "";
+
+  if (hours > 0) {
+    result += `${hours} hour${hours > 1 ? "s" : ""} `;
+  }
+  if (minutes > 0) {
+    result += `${minutes} minute${minutes > 1 ? "s" : ""} `;
+  }
+  if (seconds > 0) {
+    result += `${seconds} second${seconds > 1 ? "s" : ""}`;
+  }
+
+  return result.trim();
+};
 
 const App = () => {
   const [step, setStep] = useState(1);
@@ -44,8 +62,8 @@ const App = () => {
 
     // Simulate API call to fetch ETA
     setTimeout(() => {
-      const eta = "0:00:50"; // Replace with actual ETA fetched from API
-      setEtaDuration(eta);
+      const eta = "0:00:30"; // Replace with actual ETA fetched from API
+      setEtaDuration(formatEta(eta));
 
       // Simulate loading time based on ETA
       const [hours, minutes, seconds] = eta.split(":").map(Number);
@@ -127,7 +145,7 @@ const App = () => {
   };
 
   const handlePreviousStep = () => {
-    if (step > 1) {
+    if (!isLoading && step > 1) {
       setStep(step - 1);
     }
   };
@@ -140,9 +158,9 @@ const App = () => {
   }));
 
   return (
-    <div className="min-h-screen max-w-[2000px] bg-cover bg-gradient-to-b from-gray-100 to-gray-200 flex flex-col items-center py-10 font-sans">
-      <h1 className="text-5xl font-medium text-gray-700 mb-12 mt-2">
-        AI Headshot Generator
+    <div className="min-h-screen h-full max-w-[2000px] bg-cover bg-[#fbfaf3] flex flex-col items-center py-10 font-sans">
+      <h1 className="text-5xl font-sans font-medium text-gray-700 mb-12 mt-2">
+        Professional Headshot
       </h1>
 
       <div className="flex flex-col items-center mb-6">
@@ -150,7 +168,12 @@ const App = () => {
         {step > 1 && (
           <button
             onClick={handlePreviousStep}
-            className="bg-gradient-to-r self-start from-green-400 via-blue-500 to-purple-600 text-white gap-2 p-3 rounded-full hover:from-green-500 hover:via-blue-600 hover:to-purple-700 transition mt-0 flex items-center justify-center"
+            className={`bg-purple-500 self-start font-semibold text-white gap-2 p-3 rounded-full transition mt-0 flex items-center justify-center ${
+              isLoading
+                ? "cursor-not-allowed opacity-50"
+                : "hover:bg-purple-600"
+            }`}
+            disabled={isLoading}
           >
             <ArrowLeftIcon className="w-6 h-6" />
             Go Back
@@ -165,10 +188,10 @@ const App = () => {
         )}
         {step === 2 && (
           <div className="card text-center">
-            <p className="mb-4 text-xl text-gray-700">
+            <p className="mb-4 text-xl font-sans font-semibold text-gray-700">
               Step 2: Upload 10 or more Images
             </p>
-            <div className="w-[33%] flex justify-center items-center mx-auto">
+            <div className="progress-bar flex justify-center items-center mx-auto">
               <ProgressBar
                 progress={progress}
                 uploadedImages={uploadedImages}
@@ -182,7 +205,7 @@ const App = () => {
               {uploadedImages.length >= 10 && (
                 <button
                   onClick={handleNextStep}
-                  className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white w-80 py-3 px-6 rounded-2xl hover:from-green-500 hover:via-blue-600 hover:to-purple-700 transition-transform transform hover:scale-105 mt-4 mb-2"
+                  className="bg-purple-500 text-white text-lg font-sans w-80 py-3 px-6 rounded-2xl font-semibold hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
                 >
                   Next
                 </button>
@@ -196,27 +219,23 @@ const App = () => {
               Step 3: Model Selection
             </p>
             {isLoading ? (
-              <div className="flex flex-col items-center">
-                <Oval color="#00BFFF" height={180} width={100} />
-                <div className="animate-bounce text-2xl text-gray-700 mt-10">
-                  Training the model... This may take approximately{" "}
-                  {etaDuration}.
-                </div>
-              </div>
+              <LottieAnimation etaDuration={etaDuration} />
             ) : (
               <div className="flex flex-col items-center w-full">
                 <div className="w-full max-w-md">
                   <div className="flex items-start mb-6">
-                    <label className="text-xl text-gray-700">Model Type:</label>
+                    <label className="text-xl font-sans font-semibold text-gray-700">
+                      Model Type:
+                    </label>
                   </div>
                   <div className="flex space-x-4 mb-6">
                     {modelTypes.map((type) => (
                       <button
                         key={type}
                         onClick={() => handleModelTypeChange(type)}
-                        className={`py-4 px-8 text-xl rounded-lg ${
+                        className={`py-4 px-8 font-sans font-medium text-xl rounded-lg ${
                           modelType === type
-                            ? "bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white"
+                            ? "bg-purple-500 text-white font-bold"
                             : "bg-white border border-gray-300 text-gray-700"
                         } transition-transform transform hover:scale-105 hover:shadow-lg`}
                       >
@@ -227,7 +246,7 @@ const App = () => {
                 </div>
                 <div className="w-full max-w-md">
                   <div className="flex items-start mb-6">
-                    <label className="text-xl text-gray-700">
+                    <label className="text-xl font-sans font-semibold text-gray-700">
                       Training Name:
                     </label>
                   </div>
@@ -241,7 +260,7 @@ const App = () => {
                 <div className="flex items-center justify-center mt-4">
                   <button
                     onClick={handleNextStep}
-                    className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white w-80 py-4 px-6 rounded-2xl hover:from-green-500 hover:via-blue-600 hover:to-purple-700 transition-transform transform hover:scale-105 mt-4 mb-2"
+                    className="bg-purple-500 font-sans font-semibold text-white w-80 py-4 px-6 rounded-2xl hover:bg-purple-600 text-lg transition-transform transform hover:scale-105 mt-4 mb-2"
                   >
                     Next
                   </button>
@@ -284,7 +303,7 @@ const App = () => {
             <div className="flex items-center justify-center mt-4">
               <button
                 onClick={handleNextStep}
-                className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white w-80 py-4 px-6 rounded-2xl hover:from-green-500 hover:via-blue-600 hover:to-purple-700 transition-transform transform hover:scale-105 mt-4 mb-2"
+                className="bg-purple-500 text-white w-80 py-4 px-6 rounded-2xl hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
               >
                 Next
               </button>
@@ -295,7 +314,7 @@ const App = () => {
           <div className="card text-center">
             {isLoading ? (
               <div className="flex flex-col items-center">
-                <Oval color="#00BFFF" height={180} width={100} />
+                <Oval color="rgb(168 85 247)" height={180} width={100} />
                 <p className="text-2xl text-gray-700 mt-2">
                   The photos will be generated in a few minutes...
                 </p>

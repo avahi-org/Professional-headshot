@@ -18,8 +18,8 @@ const Breadcrumb = ({ currentStep }) => {
     const isActive = currentStep === steps[index].id;
     const isCompleted = currentStep > steps[index].id;
     return {
-      backgroundColor: isActive ? "rgb(59 130 246)" : "rgb(229 231 235)",
-      borderColor: isActive ? "rgb(59 130 246)" : "rgb(209 213 219)",
+      backgroundColor: isActive ? "rgb(168 85 247)" : "rgb(229 231 235)",
+      borderColor: isActive ? "rgb(168 85 247)" : "rgb(209 213 219)",
       color: isActive
         ? "rgb(255 255 255)" // White color for active step number
         : isCompleted
@@ -34,8 +34,8 @@ const Breadcrumb = ({ currentStep }) => {
       const isActive = currentStep === steps[index].id;
       const isCompleted = currentStep > steps[index].id;
       return {
-        backgroundColor: isActive ? "rgb(59 130 246)" : "rgb(229 231 235)",
-        borderColor: isActive ? "rgb(59 130 246)" : "rgb(209 213 219)",
+        backgroundColor: isActive ? "rgb(168 85 247)" : "rgb(229 231 235)",
+        borderColor: isActive ? "rgb(168 85 247)" : "rgb(209 213 219)",
         color: isActive
           ? "rgb(255 255 255)" // White color for active step number
           : isCompleted
@@ -71,7 +71,7 @@ const Breadcrumb = ({ currentStep }) => {
                   />
                 ) : (
                   <animated.span
-                    className={`text-lg font-semibold ${
+                    className={`text-lg font-sans font-semibold ${
                       isActive ? "text-white" : "text-gray-500"
                     } font-sans`}
                     style={{ color: springProps.color }}
@@ -81,7 +81,7 @@ const Breadcrumb = ({ currentStep }) => {
                 )}
               </animated.div>
               <animated.span
-                className={`ml-3 text-base font-medium ${
+                className={`ml-3 text-base font-semibold ${
                   isActive
                     ? "text-blue-600"
                     : isCompleted
@@ -92,7 +92,7 @@ const Breadcrumb = ({ currentStep }) => {
                   color: isCompleted
                     ? "rgb(34 211 146)"
                     : isActive
-                    ? "rgb(59 130 246)"
+                    ? "rgb(168 85 247)"
                     : "rgb(107 114 128)",
                 }}
               >

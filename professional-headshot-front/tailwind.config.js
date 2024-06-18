@@ -3,8 +3,15 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Fredoka One", "ui-sans-serif", "system-ui"],
-        inter: ["Inter"],
+        sans: [
+          "Poppins",
+          "Source Sans 3",
+          "Fredoka One",
+          "ui-sans-serif",
+          "system-ui",
+        ],
+        poppins: ["Poppins", "sans-serif"],
+        inter: ["Poppins", "sans-serif"],
       },
     },
   },

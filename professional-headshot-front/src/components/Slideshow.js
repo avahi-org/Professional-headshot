@@ -19,14 +19,14 @@ const Slideshow = ({ images, loading }) => {
   };
 
   return (
-    <div className="carousel-container">
+    <div className="carousel-container mt-10">
       <Slider {...settings}>
         {images.map((image, index) => (
           <div key={index} className="p-2">
             <img
               src={image}
               alt={`Generated headshot ${index}`}
-              className="w-full h-72 object-cover rounded-lg shadow-lg"
+              className="w-full h-96 object-cover rounded-lg shadow-lg"
             />
           </div>
         ))}

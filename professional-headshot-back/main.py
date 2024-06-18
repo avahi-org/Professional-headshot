@@ -24,6 +24,8 @@ def generate_images():
     prompt = data.get('prompt')
     job_id = data.get('jobID')
     classname = data.get('classname')
+    bucket_name = 'backend-professional-headshot-test-avahi'
+    object_prefix = 'images-test'
 
     def generate_thread(
             api_key: str,
@@ -75,7 +77,7 @@ def generate_images():
     (
         UploadImages(
             images=images,
-            object_prefix='images-test/')
+            object_prefix=object_prefix + '/')
         .process()
         .get()
     )
@@ -86,8 +88,10 @@ def generate_images():
         .get()
     )
 
+    link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}/"
 
-    return jsonify({'message': 'Image Generation is completed'}, ), 200
+    return jsonify(
+        {'message': 'Image Generation is completed'}, link_to_images), 200
 
 # Train the model
 

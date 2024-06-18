@@ -2,6 +2,7 @@ from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from functions.run_training import RunTraining
+from functions.generate_images import GenerateImages
 from functions.get_tunes import GetTunes
 import os
 
@@ -22,6 +23,8 @@ async def read_root():
         html_content = f.read()
     return HTMLResponse(content=html_content)
 
+# Set API KEY
+
 @app.post("/set-key")
 async def set_key(
     api_key: str = Form(...),
@@ -32,6 +35,8 @@ async def set_key(
 
     return {"message": "Success!"}
 
+# Run Training
+
 @app.post("/submit-strings")
 async def submit_strings(
     api_key: str = Form(...),
@@ -41,7 +46,7 @@ async def submit_strings(
 ):
     os.environ['ASTRIA_API_TOKEN'] = astria_api_key
 
-    (
+    response_json = (
         RunTraining(
             job_name=job_name,
             classname=classname
@@ -50,7 +55,11 @@ async def submit_strings(
         .get()
     )
 
+    print(response_json)
+
     return {"message": "Success!"}
+
+# Get job ids
 
 @app.post("/get-ids")
 async def get_ids():
@@ -61,6 +70,26 @@ async def get_ids():
     )
 
     print(response_dict)
+
+    return {"message": "Success!"}
+
+# Generate images
+
+@app.post("/generate-images")
+async def generate_images(
+    prompt: str = Form(...),
+    job_id: str = Form(...)
+):
+    prompt = "sks man " + prompt
+
+    (
+        GenerateImages(
+            prompt=prompt,
+            job_id=job_id
+        )
+        .process()
+        .get()
+    )
 
     return {"message": "Success!"}
 

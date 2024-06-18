@@ -316,7 +316,7 @@ const App = () => {
         )}
         {step === 5 && (
           <div className="card text-center">
-            {!isLoading ? (
+            {isLoading ? (
               <LottieAnimation
                 description={"The photos will be generated in a few minutes..."}
               />

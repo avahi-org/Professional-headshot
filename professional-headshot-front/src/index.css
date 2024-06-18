@@ -82,7 +82,7 @@ code {
 .slick-slide img,
 .slick-slide .skeleton {
   width: 100%;
-  height: 400px; /* Fixed height */
+  height: 600px; /* Fixed height */
   object-fit: cover;
   border-radius: 8px;
 }

@@ -62,7 +62,7 @@ const App = () => {
 
     // Simulate API call to fetch ETA
     setTimeout(() => {
-      const eta = "0:01:30"; // Replace with actual ETA fetched from API
+      const eta = "0:00:10"; // Replace with actual ETA fetched from API
       setEtaDuration(formatEta(eta));
 
       // Simulate loading time based on ETA
@@ -215,52 +215,56 @@ const App = () => {
         )}
         {step === 3 && (
           <div className="card text-center">
-            <p className="mb-9 text-3xl font-sans font-semibold text-gray-700">
+            <p className="mb-14 text-3xl font-sans font-semibold text-gray-700">
               Step 3: Model Selection
             </p>
             {isLoading ? (
-              <LottieAnimation etaDuration={etaDuration} />
+              <LottieAnimation
+                etaDuration={etaDuration}
+                description={"Training the model..."}
+              />
             ) : (
-              <div className="flex flex-col items-center w-full">
+              <div className="flex flex-col items-center w-full space-y-6">
                 <div className="w-full max-w-md">
-                  <div className="flex items-start mb-6">
-                    <label className="text-xl font-sans font-semibold text-gray-700">
-                      Model Type:
-                    </label>
-                  </div>
-                  <div className="flex space-x-4 mb-6">
-                    {modelTypes.map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => handleModelTypeChange(type)}
-                        className={`py-4 px-8 font-sans font-medium text-xl rounded-lg ${
-                          modelType === type
-                            ? "bg-purple-500 text-white font-semibold"
-                            : "bg-white border border-gray-300 text-gray-700"
-                        } transition-transform transform hover:scale-105 hover:shadow-lg`}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="w-full max-w-md">
-                  <div className="flex items-start mb-6">
-                    <label className="text-xl font-sans font-semibold text-gray-700">
+                  <div className="flex flex-col items-start mb-0">
+                    <label className="text-xl font-sans font-semibold text-gray-700 mb-2">
                       Training Name:
                     </label>
+                    <input
+                      type="text"
+                      value={trainingName}
+                      onChange={handleTrainingNameChange}
+                      className="bg-white font-sans font-medium border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl w-full transition-transform transform hover:scale-105 hover:shadow-lg"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={trainingName}
-                    onChange={handleTrainingNameChange}
-                    className="bg-white font-sans font-medium border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl mb-4 w-full transition-transform transform hover:scale-105 hover:shadow-lg"
-                  />
                 </div>
-                <div className="flex items-center justify-center mt-4">
+                <div className="w-full max-w-md">
+                  <div className="flex flex-col items-start mb-12">
+                    <label className="text-xl font-sans font-semibold text-gray-700 mb-2">
+                      Model Type:
+                    </label>
+                    <div className="flex space-x-4">
+                      {modelTypes.map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => handleModelTypeChange(type)}
+                          className={`py-4 px-8 font-sans font-medium text-xl rounded-lg ${
+                            modelType === type
+                              ? "bg-purple-500 text-white font-semibold"
+                              : "bg-white border border-gray-300 text-gray-700"
+                          } transition-transform transform hover:scale-105 hover:shadow-lg`}
+                        >
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full max-w-md">
                   <button
                     onClick={handleNextStep}
-                    className="bg-purple-500 font-sans font-semibold text-white w-80 py-4 px-6 rounded-2xl hover:bg-purple-600 text-lg transition-transform transform hover:scale-105 mt-4 mb-2"
+                    className="bg-purple-500 font-sans font-semibold text-white w-full py-4 px-6 rounded-2xl hover:bg-purple-600 text-lg transition-transform transform hover:scale-105"
                   >
                     Next
                   </button>
@@ -270,8 +274,8 @@ const App = () => {
           </div>
         )}
         {step === 4 && (
-          <div className="card justify-center items-center w-full text-center">
-            <p className="mb-6 text-3xl text-gray-700">
+          <div className="card text-center">
+            <p className="mb-14 text-3xl font-semibold text-gray-700">
               Step 4: Generate Training Model
             </p>
             <div className="flex flex-col items-center mb-6 w-full">
@@ -286,7 +290,7 @@ const App = () => {
                   onChange={handlePromptChange}
                   options={promptOptions}
                   placeholder="Select a prompt"
-                  className="text-xl"
+                  className="text-lg"
                   classNamePrefix="react-select"
                 />
               </div>
@@ -300,10 +304,10 @@ const App = () => {
                 className="bg-white border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl mb-4 w-96 transition-transform transform hover:scale-105 hover:shadow-lg"
               />
             </div>
-            <div className="flex items-center justify-center mt-4">
+            <div className="flex items-center justify-center">
               <button
                 onClick={handleNextStep}
-                className="bg-purple-500 text-white w-80 py-4 px-6 rounded-2xl hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
+                className="bg-purple-500 text-white font-semibold w-96 py-4 text-lg px-6 rounded-2xl hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
               >
                 Next
               </button>
@@ -312,13 +316,10 @@ const App = () => {
         )}
         {step === 5 && (
           <div className="card text-center">
-            {isLoading ? (
-              <div className="flex flex-col items-center">
-                <Oval color="rgb(168 85 247)" height={180} width={100} />
-                <p className="text-2xl font-sans font-semibold text-gray-700 mt-2">
-                  The photos will be generated in a few minutes...
-                </p>
-              </div>
+            {!isLoading ? (
+              <LottieAnimation
+                description={"The photos will be generated in a few minutes..."}
+              />
             ) : (
               <Slideshow images={generatedImages} loading={isLoading} />
             )}

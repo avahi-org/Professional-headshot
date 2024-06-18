@@ -14,9 +14,9 @@ class GenerateImages:
         # Set API KEY
         os.environ['ASTRIA_API_TOKEN'] = self.api_key
 
-        command_list = ["python", "astria.py", "gen",
+        command_list = ["python", "functions/astria.py", "gen",
                         "--steps", self.steps, "--download",
-                        self.job_id, self.prompt]
+                        str(self.job_id), self.prompt]
         
         print('command list',command_list)
 

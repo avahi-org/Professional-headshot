@@ -8,7 +8,7 @@ const ProgressBar = ({ progress, uploadedImages }) => {
   };
 
   return (
-    <div className="relative w-full bg-gray-200 rounded-full h-6 mb-4 overflow-hidden">
+    <div className="relative w-full bg-gray-200 rounded-full h-6 mb-6 overflow-hidden">
       <div
         className={`h-6 rounded-full transition-all duration-500 ${getColor()}`}
         style={{ width: `${progress}%` }}

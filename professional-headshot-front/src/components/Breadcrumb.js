@@ -8,7 +8,7 @@ const Breadcrumb = ({ currentStep }) => {
       { id: 1, name: "Introduction" },
       { id: 2, name: "Upload & Review Images" },
       { id: 3, name: "Model Selection" },
-      { id: 4, name: "Generate Training" },
+      { id: 4, name: "Generate Training Model" },
       { id: 5, name: "Summary" },
     ],
     []

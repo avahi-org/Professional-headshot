@@ -3,7 +3,7 @@ import { TrashIcon } from "@heroicons/react/outline";
 
 const Preview = ({ images, onRemove, styles, onStyleChange }) => {
   return (
-    <div className="max-w-[52rem] mx-auto bg-white shadow-lg rounded-lg p-6 mt-6">
+    <div className="max-w-[70rem] mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
       <div className="grid grid-cols-3 gap-4">
         {images.map((image, index) => (
           <div key={index} className="relative group">

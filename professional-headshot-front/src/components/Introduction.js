@@ -9,7 +9,7 @@ const Introduction = ({ onNext }) => {
 
   return (
     <div className="text-center bg-white shadow-lg p-6 max-w-4xl rounded-2xl mx-auto">
-      <h2 className="text-5xl text-gray-700 font-semibold font-inter mb-4">
+      <h2 className="text-5xl text-gray-700 font-semibold font-inter mt-2 mb-4">
         Welcome to Headshot Pro
       </h2>
       <div className="w-full flex justify-center items-center">
@@ -32,7 +32,7 @@ const Introduction = ({ onNext }) => {
       </div>
       <button
         onClick={onNext}
-        className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white w-full font-sans py-2 px-4 rounded-2xl hover:from-green-500 hover:via-blue-600 hover:to-purple-700 transition mt-4 mb-2"
+        className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white w-full font-sans py-2 px-4 rounded-2xl hover:from-green-500 hover:via-blue-600 hover:to-purple-700 transition mt-2 mb-2"
       >
         Get Started
       </button>

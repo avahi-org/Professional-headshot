@@ -8,7 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProgressBar from "./components/ProgressBar";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
-import { Oval } from "react-loader-spinner";
+import { listFilesInS3Folder, uploadFileToS3 } from "./config/awsConfig"; // Import your AWS S3 configuration
 import Select from "react-select";
 import LottieAnimation from "./components/LottieAnimation";
 
@@ -37,68 +37,62 @@ const App = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [modelType, setModelType] = useState(modelTypes[0]);
   const [prompt, setPrompt] = useState("");
+  const [folderName, setFolderName] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
   const [trainingName, setTrainingName] = useState("");
   const [etaDuration, setEtaDuration] = useState("");
-
-  useEffect(() => {
-    let interval;
-    if (isLoading && step === 3) {
-      // Start loading simulation for Step 3
-      simulateTraining();
-    } else if (isLoading && step === 4) {
-      // Start loading simulation for Step 4
-      simulateGeneration();
-    }
-
-    return () => {
-      clearInterval(interval); // Clean up intervals
-    };
-  }, [isLoading, step]);
+  const [idsOptions, setIdsOptions] = useState([]);
+  const [selectedId, setSelectedId] = useState();
 
   const simulateTraining = () => {
-    setIsLoading(true);
-
-    // Simulate API call to fetch ETA
-    setTimeout(() => {
-      const eta = "0:00:10"; // Replace with actual ETA fetched from API
-      setEtaDuration(formatEta(eta));
-
-      // Simulate loading time based on ETA
-      const [hours, minutes, seconds] = eta.split(":").map(Number);
-      const etaInSeconds = hours * 3600 + minutes * 60 + seconds;
-
-      setTimeout(() => {
-        setIsLoading(false);
-        setStep(4);
-        setGeneratedImages(uploadedImages); // Replace with actual generated images
-        resetState();
-      }, etaInSeconds * 1000);
-    }, 2000); // Simulate loading time for API call
-  };
-
-  const simulateGeneration = () => {
-    setIsLoading(true);
-
-    // Simulate loading time for generating images
-    setTimeout(() => {
-      setIsLoading(false);
-      setGeneratedImages(uploadedImages); // Replace with actual generated images
-    }, 10000);
-
-    setStep(5);
-  };
-
-  const resetState = () => {
-    setModelType(modelTypes[0]); // Reset model type
-    setTrainingName(""); // Reset training name
-    setPrompt(""); // Reset prompt
+    startTraining();
   };
 
   const handleUpload = (files) => {
+    setFolderName(`folder-${Date.now()}`);
     const newImages = files.map((file) => URL.createObjectURL(file));
     setUploadedImages((prevImages) => [...prevImages, ...newImages]);
+  };
+
+  useEffect(() => {
+    if (step === 4) {
+      const loadData = async () => {
+        try {
+          const idsData = await fetchIds("sd_seG3wWBvCbzNyAKZ3wG8QRaox5qrn2");
+          const options = Object.entries(idsData).map(([key, value]) => ({
+            value: value,
+            label: key,
+          }));
+
+          setIdsOptions(options);
+          setIsLoading(false);
+        } catch (error) {
+          console.error("Error fetching IDs:", error);
+          toast.error("Error fetching IDs.");
+          setIsLoading(false);
+        }
+      };
+
+      loadData();
+    }
+  }, [step]);
+
+  const fetchIds = async (apiKey) => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/get-ids", {
+        method: "POST", // Change method to POST
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ apiKey }),
+      });
+      const data = await response.json();
+      return data?.available_models;
+    } catch (error) {
+      console.error("Error fetching IDs:", error);
+      toast.error("Error fetching IDs.");
+    }
   };
 
   const handleRemove = (index) => {
@@ -117,14 +111,65 @@ const App = () => {
     setTrainingName(event.target.value);
   };
 
-  const handleNextStep = () => {
+  const startGeneratingPhotos = async () => {
+    const payload = {
+      apiKey: "sd_seG3wWBvCbzNyAKZ3wG8QRaox5qrn2",
+      classname: modelType,
+      prompt: prompt,
+      jobID: selectedId?.value,
+    };
+
+    console.log("payload", prompt, selectedId?.value);
+
+    setIsLoading(true);
+    setStep(5); // Move to step 5 immediately to show loading animation
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:5000/api/generate-images",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await response.json();
+      console.log("Image generation started successfully:", data);
+
+      if (data.link_to_images) {
+        // Extract the prefix from the link_to_images
+        const url = new URL(data.link_to_images);
+        const prefix = url.pathname.substring(1); // Remove the leading '/'
+
+        // Fetch the images from the S3 folder
+        const images = await listFilesInS3Folder(
+          prefix,
+          "backend-professional-headshot-test-avahi"
+        );
+
+        setGeneratedImages(images);
+        toast.success("Image generation completed successfully.");
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error starting image generation:", error);
+      toast.error("Error starting image generation.");
+      setIsLoading(false);
+    }
+  };
+  const handleNextStep = async () => {
     switch (step) {
       case 1:
         setStep(2);
         break;
       case 2:
         if (uploadedImages.length >= 10) {
-          setStep(3);
+          await handleUploadAWS(); // Upload images to AWS before proceeding
         } else {
           toast.error("Please upload at least 10 images.");
         }
@@ -134,14 +179,19 @@ const App = () => {
           toast.error("Please enter a training name.");
           return;
         }
+
         simulateTraining();
         break;
       case 4:
-        simulateGeneration();
+        await startGeneratingPhotos();
         break;
       default:
         break;
     }
+  };
+
+  const handleSkipStep = (targetStep) => {
+    setStep(targetStep);
   };
 
   const handlePreviousStep = () => {
@@ -156,6 +206,67 @@ const App = () => {
     value: p,
     label: p.charAt(0).toUpperCase() + p.slice(1),
   }));
+
+  const startTraining = async () => {
+    const payload = {
+      apiKey: "sd_seG3wWBvCbzNyAKZ3wG8QRaox5qrn2",
+      jobName: trainingName,
+      classname: modelType,
+      imagesInBucketPath: folderName,
+    };
+
+    console.log("payload", payload, folderName);
+
+    try {
+      setIsLoading(true);
+      const response = await fetch("http://127.0.0.1:5000/api/start-training", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log("Training started successfully:", data);
+      toast.success("Training started successfully.");
+
+      // Simulate 10 minutes loading time
+      setTimeout(() => {
+        setIsLoading(false);
+        setStep(4);
+      }, 600000); // 600000 milliseconds = 10 minutes
+    } catch (error) {
+      console.error("Error starting training:", error);
+      toast.error("Error starting training.");
+      setIsLoading(false);
+    }
+  };
+
+  const handleUploadAWS = async () => {
+    setIsLoading(true);
+    const bucketName = "backend-professional-headshot-test-avahi";
+    const newImages = [];
+
+    for (const image of uploadedImages) {
+      try {
+        const file = await fetch(image).then((r) => r.blob());
+        const { url } = await uploadFileToS3(file, folderName, bucketName);
+        newImages.push(url);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error("Error uploading file.");
+      }
+    }
+
+    setIsLoading(false);
+    toast.success("Images uploaded successfully.");
+    setStep(3);
+  };
+
+  const handleIdChange = (selectedOption) => {
+    setSelectedId(selectedOption);
+  };
 
   return (
     <div className="min-h-screen h-full max-w-[2000px] bg-cover bg-[#efefe9] flex flex-col items-center py-10 font-sans">
@@ -191,26 +302,38 @@ const App = () => {
             <p className="mb-4 text-xl font-sans font-semibold text-gray-700">
               Step 2: Upload 10 or more Images
             </p>
-            <div className="progress-bar flex justify-center items-center mx-auto">
-              <ProgressBar
-                progress={progress}
-                uploadedImages={uploadedImages}
-              />
-            </div>
-            <Upload onUpload={handleUpload} />
-            {uploadedImages.length > 1 && (
-              <Preview images={uploadedImages} onRemove={handleRemove} />
+            {isLoading ? (
+              <LottieAnimation description={"Uploading images..."} />
+            ) : (
+              <>
+                <div className="progress-bar flex justify-center items-center mx-auto">
+                  <ProgressBar
+                    progress={progress}
+                    uploadedImages={uploadedImages}
+                  />
+                </div>
+                <Upload onUpload={handleUpload} />
+                {uploadedImages.length >= 1 && (
+                  <Preview images={uploadedImages} onRemove={handleRemove} />
+                )}
+                <div className="flex items-center justify-center mt-6">
+                  {uploadedImages.length >= 10 && (
+                    <button
+                      onClick={handleNextStep}
+                      className="bg-purple-500 text-white text-lg font-sans w-80 py-3 px-6 rounded-2xl font-semibold hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
+                    >
+                      Next
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleSkipStep(3)}
+                    className="bg-blue-500 text-white text-lg font-sans w-80 py-3 px-6 rounded-2xl font-semibold hover:bg-blue-600 transition-transform transform hover:scale-105 mt-4 mb-2 ml-4"
+                  >
+                    Skip
+                  </button>
+                </div>
+              </>
             )}
-            <div className="flex items-center justify-center mt-6">
-              {uploadedImages.length >= 10 && (
-                <button
-                  onClick={handleNextStep}
-                  className="bg-purple-500 text-white text-lg font-sans w-80 py-3 px-6 rounded-2xl font-semibold hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
-                >
-                  Next
-                </button>
-              )}
-            </div>
           </div>
         )}
         {step === 3 && (
@@ -268,6 +391,12 @@ const App = () => {
                   >
                     Next
                   </button>
+                  <button
+                    onClick={() => handleSkipStep(4)}
+                    className="bg-blue-500 font-sans font-semibold text-white w-full py-4 px-6 rounded-2xl hover:bg-blue-600 text-lg transition-transform transform hover:scale-105 mt-4"
+                  >
+                    Skip
+                  </button>
                 </div>
               </div>
             )}
@@ -294,16 +423,31 @@ const App = () => {
                   classNamePrefix="react-select"
                 />
               </div>
-              <label className="mt-6 mb-4 text-xl font-sans font-semibold  text-gray-700 w-96 text-start">
+              <label className="mt-6 mb-4 text-xl font-sans font-semibold text-gray-700 w-96 text-start">
                 Or enter your own prompt:
               </label>
-              <input
-                type="text"
+              <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="bg-white border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl mb-4 w-96 transition-transform transform hover:scale-105 hover:shadow-lg"
+                rows={4} // Adjust the number of rows as needed
+                className="bg-white border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl mb-4 w-96 transition-transform transform hover:scale-105 hover:shadow-lg resize-none"
+                placeholder="Enter your prompt here..."
               />
+              <label className="mt-6 mb-4 text-xl font-sans font-semibold text-gray-700 w-96 text-start">
+                Model of training
+              </label>
+              <div className="w-96 mb-4">
+                <Select
+                  value={selectedId}
+                  onChange={handleIdChange}
+                  options={idsOptions}
+                  placeholder="Select a training model"
+                  className="text-lg"
+                  classNamePrefix="react-select"
+                />
+              </div>
             </div>
+
             <div className="flex items-center justify-center">
               <button
                 onClick={handleNextStep}

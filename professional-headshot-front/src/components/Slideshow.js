@@ -35,4 +35,4 @@ const Slideshow = ({ images, loading }) => {
   );
 };
 
-export default Slideshow;
+export default React.memo(Slideshow);

@@ -11,7 +11,7 @@ const LottieAnimation = ({ etaDuration, description }) => {
         play
         style={{ width: 200, height: 200 }}
       />
-      <div className="text-2xl text-gray-700 mt-10">
+      <div className="text-2xl text-gray-700 font-semibold mt-10">
         <div className="animate-bounce"> {description}</div>
         {etaDuration && (
           <div className="animate-bounce">

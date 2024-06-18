@@ -4,13 +4,14 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: [
-          "Open Sans",
+          "Poppins",
           "Source Sans 3",
           "Fredoka One",
           "ui-sans-serif",
           "system-ui",
         ],
-        inter: ["Inter"],
+        poppins: ["Poppins", "sans-serif"],
+        inter: ["Poppins", "sans-serif"],
       },
     },
   },

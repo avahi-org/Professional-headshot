@@ -158,8 +158,8 @@ const App = () => {
   }));
 
   return (
-    <div className="min-h-screen h-full max-w-[2000px] bg-cover bg-[#fbfaf3] flex flex-col items-center py-10 font-sans">
-      <h1 className="text-5xl font-sans font-medium text-gray-700 mb-12 mt-2">
+    <div className="min-h-screen h-full max-w-[2000px] bg-cover bg-[#efefe9] flex flex-col items-center py-10 font-sans">
+      <h1 className="text-5xl font-poppins font-normal text-gray-700 mb-12 mt-2">
         Professional Headshot
       </h1>
 
@@ -215,7 +215,7 @@ const App = () => {
         )}
         {step === 3 && (
           <div className="card text-center">
-            <p className="mb-9 text-3xl text-gray-700">
+            <p className="mb-9 text-3xl font-sans font-semibold text-gray-700">
               Step 3: Model Selection
             </p>
             {isLoading ? (
@@ -312,7 +312,7 @@ const App = () => {
         )}
         {step === 5 && (
           <div className="card text-center">
-            {!isLoading ? (
+            {isLoading ? (
               <div className="flex flex-col items-center">
                 <Oval color="rgb(168 85 247)" height={180} width={100} />
                 <p className="text-2xl font-sans font-semibold text-gray-700 mt-2">

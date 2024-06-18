@@ -26,7 +26,7 @@ const Introduction = ({ onNext }) => {
             key={index}
             src={src}
             alt={`Sample ${index}`}
-            className="w-1/3 h-96 rounded-3xl shadow-md"
+            className="w-[32%] h-96 rounded-3xl shadow-md"
           />
         ))}
       </div>

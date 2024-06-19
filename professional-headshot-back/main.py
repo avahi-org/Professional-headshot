@@ -151,7 +151,7 @@ async def get_ids():
         .process()
         .get()
     )
-    return jsonify(response_dict), 200
+    return jsonify({'available_models': response_dict}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

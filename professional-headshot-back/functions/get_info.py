@@ -36,7 +36,7 @@ class GetInfo:
             if key:
                 search_group = key.group(0).replace('"', '')
                 value = re.search(r': "*\d*[^"]*', line)
-                clean_value = re.sub(r'[" :]', '', value.group(0))
+                clean_value = re.sub(r'[" :,]', '', value.group(0))
 
                 """
                 Save 'id' and 'title' values

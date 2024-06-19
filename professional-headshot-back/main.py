@@ -25,7 +25,7 @@ def generate_images():
     prompt = data.get('prompt')
     job_id = data.get('jobID')
     classname = data.get('classname')
-    object_prefix = data.get('userID') + '/generated-images/'
+    object_prefix = str(data.get('userID')) + '/generated-images/'
     bucket_name = 'backend-professional-headshot-test-avahi'
 
     def generate_thread(
@@ -109,7 +109,7 @@ def start_training():
     classname = data.get('classname')
     path = data.get('imagesInBucketPath') + '/'
     bucket_name = 'backend-professional-headshot-test-avahi'
-    object_prefix = data.get('userID') + '/model-info/'
+    object_prefix = str(data.get('userID')) + '/model-info/'
  
     # Set API KEY
     os.environ['ASTRIA_API_TOKEN'] = api_key
@@ -142,7 +142,7 @@ def start_training():
 async def get_ids():
     data = request.json
     bucket = 'backend-professional-headshot-test-avahi'
-    path = data.get('userID') + '/model-info/'
+    path = str(data.get('userID')) + '/model-info/'
 
     response_dict = (
         GetModelInfo(

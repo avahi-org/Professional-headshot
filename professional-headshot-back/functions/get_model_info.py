@@ -22,6 +22,7 @@ class GetModelInfo:
 
             if split_object[-1] != '':
                 file = split_object[-1].replace('.txt', '')
+                file = file.replace(',', '')
                 self.model_info[split_object[-2]] = file
 
         return self

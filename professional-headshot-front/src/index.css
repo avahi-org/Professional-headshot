@@ -15,11 +15,17 @@ body {
   padding: 0;
   background-color: #efefe9;
   font-family: "Sinkin Sans", sans-serif;
-  justify-content: center;
-  align-items: center;
-  display: flex;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.container {
+  max-width: 2100px;
+  margin: 0 auto;
+  padding: 20px;
+  flex: 1;
 }
 
 code {
@@ -77,14 +83,6 @@ code {
     rgba(255, 255, 255, 1),
     rgba(255, 255, 255, 0)
   );
-}
-
-.slick-slide img,
-.slick-slide .skeleton {
-  width: 100%;
-  height: 600px; /* Fixed height */
-  object-fit: cover;
-  border-radius: 8px;
 }
 
 .nav-button {

@@ -91,7 +91,11 @@ def generate_images():
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}/"
 
     return jsonify(
-        {'message': 'Image Generation is completed'}, link_to_images), 200
+        {
+            'message': 'Image Generation is completed',
+            'link_to_images': link_to_images
+        }
+    ), 200
 
 # Train the model
 

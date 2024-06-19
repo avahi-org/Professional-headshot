@@ -1,122 +1,93 @@
 import React, { useMemo } from "react";
-import { CheckCircleIcon } from "@heroicons/react/solid";
-import { useSprings, animated } from "@react-spring/web";
+import { CheckCircleIcon, ArrowLeftIcon } from "@heroicons/react/solid";
+import { useSpring, animated } from "@react-spring/web";
 
-const Breadcrumb = ({ currentStep }) => {
+const Breadcrumb = ({ currentStep, onGoBack, totalSteps }) => {
   const steps = useMemo(
     () => [
-      { id: 1, name: "Introduction" },
-      { id: 2, name: "Upload & Review Images" },
-      { id: 3, name: "Model Selection" },
-      { id: 4, name: "Generate Training Model" },
-      { id: 5, name: "Summary" },
+      { id: 1, name: "Upload & Review Images" },
+      { id: 2, name: "Model Selection" },
+      { id: 3, name: "Generate Training Model" },
+      { id: 4, name: "Summary" },
     ],
     []
   );
 
-  const [springs, api] = useSprings(steps.length, (index) => {
-    const isActive = currentStep === steps[index].id;
-    const isCompleted = currentStep > steps[index].id;
-    return {
-      backgroundColor: isActive ? "rgb(168 85 247)" : "rgb(229 231 235)",
-      borderColor: isActive ? "rgb(168 85 247)" : "rgb(209 213 219)",
-      color: isActive
-        ? "rgb(255 255 255)" // White color for active step number
-        : isCompleted
-        ? "rgb(34 211 146)" // Green color for completed step number
-        : "rgb(107 114 128)",
-      config: { duration: 300 }, // Adjust duration for smoother transition
-    };
-  });
-
-  React.useEffect(() => {
-    api.start((index) => {
-      const isActive = currentStep === steps[index].id;
-      const isCompleted = currentStep > steps[index].id;
-      return {
-        backgroundColor: isActive ? "rgb(168 85 247)" : "rgb(229 231 235)",
-        borderColor: isActive ? "rgb(168 85 247)" : "rgb(209 213 219)",
-        color: isActive
-          ? "rgb(255 255 255)" // White color for active step number
-          : isCompleted
-          ? "rgb(34 211 146)" // Green color for completed step number
-          : "rgb(107 114 128)",
-        config: { duration: 300 }, // Adjust duration for smoother transition
-      };
-    });
-  }, [currentStep, api, steps]);
+  const [props, api] = useSpring(
+    () => ({
+      from: { width: "0%" },
+      to: { width: `${(currentStep / totalSteps) * 100}%` },
+    }),
+    [currentStep]
+  );
 
   return (
-    <nav aria-label="Progress" className="mb-10">
-      <ol className="flex items-center space-x-4">
-        {steps.map((step, index) => {
-          const isCompleted = currentStep > step.id;
-          const isActive = currentStep === step.id;
-          const springProps = springs[index];
-
-          return (
-            <li key={step.name} className="flex items-center">
-              <animated.div
-                className="relative flex items-center justify-center w-10 h-10 rounded-full border-4"
-                style={{
-                  backgroundColor: springProps.backgroundColor,
-                  borderColor: springProps.borderColor,
-                  transition: "background 0.3s, border-color 0.3s",
-                }}
-              >
-                {isCompleted ? (
-                  <CheckCircleIcon
-                    className="w-6 h-6 text-green-600"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  <animated.span
-                    className={`text-lg font-sans font-semibold ${
-                      isActive ? "text-white" : "text-gray-500"
-                    } font-sans`}
-                    style={{ color: springProps.color }}
+    <div className="w-full mb-10 hidden customBreakpoint:flex flex-col items-center">
+      <div className="flex flex-col items-center w-full max-w-4xl">
+        <nav aria-label="Progress" className="w-full">
+          <ol className="flex items-center justify-center">
+            {steps.map((step, index) => {
+              const isCompleted = currentStep > step.id;
+              const isActive = currentStep === step.id;
+              return (
+                <li key={step.name} className="flex items-center">
+                  <animated.div
+                    className={`relative flex items-center justify-center w-8 h-8 rounded-full border-4 transition-transform transform hover:scale-105 ${
+                      isActive
+                        ? "bg-purple-500 border-purple-500 text-white"
+                        : isCompleted
+                        ? "bg-green-500 border-green-500 text-white"
+                        : "bg-gray-300 border-gray-300 text-gray-500"
+                    }`}
                   >
-                    {step.id}
-                  </animated.span>
-                )}
-              </animated.div>
-              <animated.span
-                className={`ml-3 text-base font-semibold ${
-                  isActive
-                    ? "text-blue-600"
-                    : isCompleted
-                    ? "text-green-600"
-                    : "text-gray-500"
-                } font-sans`}
-                style={{
-                  color: isCompleted
-                    ? "rgb(34 211 146)"
-                    : isActive
-                    ? "rgb(168 85 247)"
-                    : "rgb(107 114 128)",
-                }}
-              >
-                {step.name}
-              </animated.span>
-              {index !== steps.length - 1 && (
-                <svg
-                  className="w-6 h-6 text-gray-300 ml-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
+                    {isCompleted ? (
+                      <CheckCircleIcon className="w-5 h-5 text-white" />
+                    ) : (
+                      <span className="text- font-sans font-semibold">
+                        {step.id}
+                      </span>
+                    )}
+                  </animated.div>
+                  <span
+                    className={`ml-2 text-base text-center font-semibold ${
+                      isActive
+                        ? "text-purple-600"
+                        : isCompleted
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {step.name}
+                  </span>
+                  {index !== steps.length - 1 && (
+                    <svg
+                      className="w-6 h-6 text-gray-300 ml-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+          {currentStep > 1 && (
+            <button
+              onClick={onGoBack}
+              className="mt-4 flex items-start ml-8 text-purple-500 hover:text-purple-600 transition"
+            >
+              <ArrowLeftIcon className="w-6 h-6 mr-2" />
+              Go Back
+            </button>
+          )}
+        </nav>
+      </div>
+    </div>
   );
 };
 

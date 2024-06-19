@@ -4,10 +4,11 @@ import json
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
-from functions.get_tunes import GetTunes
+from functions.get_model_info import GetModelInfo
 from functions.get_images import GetImages
 from functions.upload_images import UploadImages
 from functions.delete_images import DeleteImages
+from functions.upload_model_info import UploadModelInfo
 
 
 app = Flask(__name__)
@@ -24,8 +25,8 @@ def generate_images():
     prompt = data.get('prompt')
     job_id = data.get('jobID')
     classname = data.get('classname')
+    object_prefix = data.get('userID') + '/generated-images/'
     bucket_name = 'backend-professional-headshot-test-avahi'
-    object_prefix = 'images-test'
 
     def generate_thread(
             api_key: str,
@@ -77,7 +78,7 @@ def generate_images():
     (
         UploadImages(
             images=images,
-            object_prefix=object_prefix + '/')
+            object_prefix=object_prefix)
         .process()
         .get()
     )
@@ -88,7 +89,7 @@ def generate_images():
         .get()
     )
 
-    link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}/"
+    link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
 
     return jsonify(
         {
@@ -106,6 +107,8 @@ def start_training():
     job_name = data.get('jobName')
     classname = data.get('classname')
     path = data.get('imagesInBucketPath') + '/'
+    bucket_name = 'backend-professional-headshot-test-avahi'
+    object_prefix = data.get('userID') + '/model-info/'
  
     # Set API KEY
     os.environ['ASTRIA_API_TOKEN'] = api_key
@@ -120,6 +123,16 @@ def start_training():
         .get()
     )
 
+    (
+        UploadModelInfo(
+            response_json=response_json,
+            bucket=bucket_name,
+            object_prefix=object_prefix
+        )
+        .process()
+        .get()
+    )
+
     return jsonify(response_json), 200
 
 # Return available models
@@ -127,9 +140,14 @@ def start_training():
 @app.route('/api/get-ids', methods=['POST']) 
 async def get_ids():
     data = request.json
-    api_key = data.get('apiKey')
+    bucket = 'backend-professional-headshot-test-avahi'
+    path = data.get('userID') + '/model-info/'
+
     response_dict = (
-        GetTunes(astria_api_key=api_key)
+        GetModelInfo(
+            bucket=bucket,
+            path=path
+        )
         .process()
         .get()
     )

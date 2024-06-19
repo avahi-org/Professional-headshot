@@ -8,6 +8,9 @@ module.exports = {
         poppins: ["Poppins", "sans-serif"],
         inter: ["Poppins", "sans-serif"],
       },
+      screens: {
+        customBreakpoint: "930px",
+      },
     },
   },
   plugins: [],

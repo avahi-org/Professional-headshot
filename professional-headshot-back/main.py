@@ -78,6 +78,7 @@ def generate_images():
     (
         UploadImages(
             images=images,
+            bucket=bucket_name,
             object_prefix=object_prefix)
         .process()
         .get()

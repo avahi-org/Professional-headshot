@@ -71,7 +71,10 @@ const App = () => {
     if (step === 3 && userId) {
       const loadData = async () => {
         try {
-          const idsData = await fetchIds(process.env.REACT_APP_API_KEY, userId);
+          const idsData = await fetchIds(
+            process.env.REACT_APP_ASTRIA_API_KEY,
+            userId
+          );
           const options = Object.entries(idsData).map(([key, value]) => ({
             value: value,
             label: key,
@@ -123,9 +126,14 @@ const App = () => {
     setTrainingName(event.target.value);
   };
 
+  console.log(
+    "process.env.REACT_APP_API_KEY",
+    process.env.REACT_APP_ASTRIA_API_KEY
+  );
+
   const startGeneratingPhotos = async () => {
     const payload = {
-      apiKey: process.env.REACT_APP_API_KEY,
+      apiKey: process.env.REACT_APP_ASTRIA_API_KEY,
       classname: modelType,
       prompt: prompt,
       jobID: selectedId?.value,
@@ -214,7 +222,7 @@ const App = () => {
 
   const startTraining = async () => {
     const payload = {
-      apiKey: process.env.REACT_APP_API_KEY,
+      apiKey: process.env.REACT_APP_ASTRIA_API_KEY,
       jobName: trainingName,
       classname: modelType,
       imagesInBucketPath: folderName,

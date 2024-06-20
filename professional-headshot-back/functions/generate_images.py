@@ -10,7 +10,7 @@ class GenerateImages:
     prompt: str = 'sks man headshot of a banking professional wearing a nice suit'
     job_id: str = '1371459'
     steps: str = '80'
-    seed: int = randint(1, 15000)
+    seed: int = str(randint(1, 15000))
 
     def process(self):
         # Set API KEY

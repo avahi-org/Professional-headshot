@@ -8,10 +8,10 @@ import {
 
 // Configure the AWS SDK use process.env laterr
 const s3 = new S3Client({
-  region: "us-east-1",
+  region: process.env.REACT_APP_AWS_BUCKET_REGION,
   credentials: {
-    accessKeyId: "AKIAXGMECJMXVJGJRM4Q",
-    secretAccessKey: "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",
+    accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
   },
 });
 

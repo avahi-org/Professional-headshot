@@ -71,10 +71,7 @@ const App = () => {
     if (step === 3 && userId) {
       const loadData = async () => {
         try {
-          const idsData = await fetchIds(
-            "sd_seG3wWBvCbzNyAKZ3wG8QRaox5qrn2",
-            userId
-          );
+          const idsData = await fetchIds(process.env.REACT_APP_API_KEY, userId);
           const options = Object.entries(idsData).map(([key, value]) => ({
             value: value,
             label: key,
@@ -128,7 +125,7 @@ const App = () => {
 
   const startGeneratingPhotos = async () => {
     const payload = {
-      apiKey: "sd_seG3wWBvCbzNyAKZ3wG8QRaox5qrn2",
+      apiKey: process.env.REACT_APP_API_KEY,
       classname: modelType,
       prompt: prompt,
       jobID: selectedId?.value,
@@ -159,7 +156,7 @@ const App = () => {
         // Fetch the images from the S3 folder
         const images = await listFilesInS3Folder(
           prefix,
-          "backend-professional-headshot-test-avahi"
+          process.env.REACT_APP_AWS_BUCKET_NAME
         );
 
         setGeneratedImages(images);
@@ -217,7 +214,7 @@ const App = () => {
 
   const startTraining = async () => {
     const payload = {
-      apiKey: "sd_seG3wWBvCbzNyAKZ3wG8QRaox5qrn2",
+      apiKey: process.env.REACT_APP_API_KEY,
       jobName: trainingName,
       classname: modelType,
       imagesInBucketPath: folderName,
@@ -235,6 +232,9 @@ const App = () => {
       });
 
       const data = await response.json();
+      // TODO: test the eta and pass it to the training to be more exact.
+
+      // setEtaDuration(formatEta(data.eta))
       toast.success("Training started successfully.");
 
       // Simulate 10 minutes loading time
@@ -251,7 +251,7 @@ const App = () => {
 
   const handleUploadAWS = async () => {
     setIsLoading(true);
-    const bucketName = "backend-professional-headshot-test-avahi";
+    const bucketName = process.env.REACT_APP_AWS_BUCKET_NAME;
     const newImages = [];
 
     for (const image of uploadedImages) {

@@ -15,7 +15,7 @@ from functions.upload_model_info import UploadModelInfo
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Allow requests from your frontend origin
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:*"}})  # Allow requests from your frontend origin
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")

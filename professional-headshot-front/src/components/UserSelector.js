@@ -3,9 +3,8 @@ import Select from "react-select";
 import { setUserId, getUserId } from "../utils/user";
 
 const predefinedUsers = [
-  { value: 1, label: "Abel" },
-  { value: 2, label: "Gentrit" },
-  { value: 3, label: "Dhruv" },
+  { value: 1, label: "abel@gmail.com" },
+  { value: 2, label: "gentrit@gmail.com" },
 ];
 
 const getUsersFromLocalStorage = () => {
@@ -13,12 +12,13 @@ const getUsersFromLocalStorage = () => {
   return users ? JSON.parse(users) : predefinedUsers;
 };
 
-const UserSelector = ({ onUserSelect }) => {
+const UserSelector = ({ onUserSelect, onPhoneChange }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userOptions, setUserOptions] = useState(getUsersFromLocalStorage());
   const [newUser, setNewUser] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [nextUserId, setNextUserId] = useState(
-    userOptions.length ? Math.max(...userOptions.map((u) => u.value)) + 1 : 1
+    userOptions?.length ? Math.max(...userOptions?.map((u) => u?.value)) + 1 : 1
   );
 
   useEffect(() => {
@@ -32,15 +32,24 @@ const UserSelector = ({ onUserSelect }) => {
       user = userOptions[0]; // Preselect the first user if no saved user ID
     }
     setSelectedUser(user);
-    if (user) onUserSelect(user.value);
+    if (user) onUserSelect(user);
   }, [onUserSelect, userOptions]);
 
   const handleUserChange = (selectedOption) => {
     setSelectedUser(selectedOption);
     if (selectedOption) {
       setUserId(selectedOption.value);
-      onUserSelect(selectedOption.value);
+      onUserSelect(selectedOption);
+    } else {
+      setUserId(null);
+      onUserSelect(null);
     }
+  };
+
+  const handlePhoneNumberChange = (event) => {
+    const phone = event.target.value;
+    setPhoneNumber(phone);
+    onPhoneChange(phone);
   };
 
   const handleAddUser = () => {
@@ -49,8 +58,8 @@ const UserSelector = ({ onUserSelect }) => {
       const updatedUsers = [...userOptions, newUserOption];
       setUserOptions(updatedUsers);
       setSelectedUser(newUserOption);
-      setUserId(nextUserId);
-      onUserSelect(nextUserId);
+      setUserId(newUserOption.value);
+      onUserSelect(newUserOption);
       setNewUser("");
       setNextUserId(nextUserId + 1);
       localStorage.setItem("users", JSON.stringify(updatedUsers));
@@ -66,17 +75,17 @@ const UserSelector = ({ onUserSelect }) => {
         value={selectedUser}
         onChange={handleUserChange}
         options={userOptions}
-        placeholder="Select your user name"
+        placeholder="Select your user email"
         isClearable
         isSearchable
         className="mb-4 w-full"
       />
-      <div className="flex items-center w-full">
+      <div className="flex items-center w-full mb-4">
         <input
           type="text"
           value={newUser}
           onChange={(e) => setNewUser(e.target.value)}
-          placeholder="Enter new user ID"
+          placeholder="Enter new user email"
           className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2 w-full transition-transform transform hover:scale-105 hover:shadow-lg"
         />
         <button
@@ -85,6 +94,15 @@ const UserSelector = ({ onUserSelect }) => {
         >
           Add
         </button>
+      </div>
+      <div className="w-full">
+        <input
+          type="text"
+          value={phoneNumber}
+          onChange={handlePhoneNumberChange}
+          placeholder="Enter phone number (optional)"
+          className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg w-full transition-transform transform hover:scale-105 hover:shadow-lg"
+        />
       </div>
     </div>
   );

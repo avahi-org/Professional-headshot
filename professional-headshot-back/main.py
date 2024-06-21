@@ -4,6 +4,7 @@ import json
 import re
 import threading
 import queue
+import matplotlib.pyplot as plt
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
@@ -171,14 +172,16 @@ async def get_ids():
 
 def plot_worker():
     # Wait for a plot request
-    plot_request_queue.get()
-    directory = os.getcwd()
-    selected_images = (
-    FilterImages(folder_path=directory)
-    .process()
-    .get()
-    )
-    return selected_images
+    while True:
+        plot_request_queue.get()
+        directory = os.getcwd()
+        selected_images = (
+        FilterImages(folder_path=directory)
+        .process()
+        .get()
+        )
+        plt.show()
+        return selected_images
 
 def run_flask():
     app.run(debug=True, port=5000)

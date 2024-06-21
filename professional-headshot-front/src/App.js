@@ -64,7 +64,6 @@ const App = () => {
   const [selectedId, setSelectedId] = useState();
   const [userId, setUserId] = useState();
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [countdown, setCountdown] = useState(null);
 
   const simulateTraining = () => {
     startTraining();
@@ -76,31 +75,7 @@ const App = () => {
     setUploadedImages((prevImages) => [...prevImages, ...newImages]);
   };
 
-  useEffect(() => {
-    if (step === 2 && etaDuration) {
-      const [hours, minutes, seconds] = etaDuration.split(":").map(Number);
-      let totalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-      const interval = setInterval(() => {
-        totalSeconds -= 1;
-        if (totalSeconds <= 0) {
-          clearInterval(interval);
-          setCountdown(null); // Clear countdown when finished
-        } else {
-          const displayHours = Math.floor(totalSeconds / 3600);
-          const displayMinutes = Math.floor((totalSeconds % 3600) / 60);
-          const displaySeconds = totalSeconds % 60;
-          setCountdown(
-            `${displayHours}:${displayMinutes
-              .toString()
-              .padStart(2, "0")}:${displaySeconds.toString().padStart(2, "0")}`
-          );
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [step, etaDuration]);
+  console.log("userId", userId);
 
   useEffect(() => {
     if (step === 3 && userId?.value) {
@@ -401,7 +376,7 @@ const App = () => {
 
             {isLoading ? (
               <LottieAnimation
-                countdown={countdown}
+                etaDuration={etaDuration}
                 description={"Training the model..."}
               />
             ) : (
@@ -533,7 +508,6 @@ const App = () => {
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-purple-600"
                 }`}
-                aria-label="Proceed to next step"
                 disabled={!selectedId}
               >
                 Next

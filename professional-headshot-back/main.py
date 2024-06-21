@@ -15,7 +15,7 @@ from functions.upload_model_info import UploadModelInfo
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:*"}})  # Allow requests from your frontend origin
+CORS(app, resources={r"/api/*": {"origins": "*"}})  # Allow requests from your frontend origin
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
@@ -91,7 +91,8 @@ def generate_images():
     prompt = data.get('prompt')
     job_id = data.get('jobID')
     classname = data.get('classname')
-    # e_mail = re.sub('@*', '', data.get('userEmail'))
+    e_mail = re.sub('@*', '', data.get('userEmail'))
+    user_id = str(data.get('userID'))
     # phone = data.get('phoneNumber')
     # object_prefix = f"{str(data.get('userID'))}-{e_mail}/generated-images/"
     # bucket_name = 'backend-professional-headshot-test-avahi'
@@ -149,15 +150,20 @@ def generate_images():
     verified_images = []
     images_event.clear()
     
-    socketio.emit('new_images', {'images': images})
+    socketio.emit('new_images',
+                  {'images': images,
+                   'userEmail': e_mail,
+                   'userID': user_id
+                   })
     
     # Wait for verification
     images_event.wait()
     
     # Proceed with verified images
     return jsonify(
-        {'message':
-         'Image Generation and Verification is completed', 'verifiedImages': verified_images}), 200
+        {'message': 'Image Generation and Verification is completed',
+         'verifiedImages': verified_images
+         }), 200
 
     # plot_request_queue.put(True)
     # selected_images = plot_worker()

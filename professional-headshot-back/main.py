@@ -28,6 +28,7 @@ def generate_images():
     job_id = data.get('jobID')
     classname = data.get('classname')
     e_mail = re.sub('@*', '', data.get('userEmail'))
+    phone = data.get('phoneNumber')
     object_prefix = f'{str(data.get('userID'))}-{e_mail}/generated-images/'
     bucket_name = 'backend-professional-headshot-test-avahi'
 
@@ -121,6 +122,7 @@ def start_training():
     path = data.get('imagesInBucketPath') + '/'
     bucket_name = 'backend-professional-headshot-test-avahi'
     e_mail = re.sub('@*', '', data.get('userEmail'))
+    phone = data.get('phoneNumber')
     object_prefix = f'{str(data.get('userID'))}-{e_mail}/model-info/'
     # object_prefix = str(data.get('userID')) + '/model-info/'
  

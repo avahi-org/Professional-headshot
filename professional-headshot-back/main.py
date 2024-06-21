@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 import os
 import json
 import re
+import threading
+import queue
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
@@ -17,6 +19,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Allow requests from your frontend origin
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+plot_request_queue = queue.Queue()
 
 # Generate images
 
@@ -79,13 +82,8 @@ def generate_images():
         job_id=job_id
     )
 
-    directory = os.getcwd()
 
-    selected_images = (
-        FilterImages(folder_path=directory)
-        .process()
-        .get()
-    )
+    selected_images = plot_worker()
 
     (
         UploadImages(
@@ -171,5 +169,25 @@ async def get_ids():
     )
     return jsonify({'available_models': response_dict}), 200
 
-if __name__ == '__main__':
+def plot_worker():
+    # Wait for a plot request
+    plot_request_queue.get()
+    directory = os.getcwd()
+    selected_images = (
+    FilterImages(folder_path=directory)
+    .process()
+    .get()
+    )
+    return selected_images
+
+def run_flask():
     app.run(debug=True, port=5000)
+
+if __name__ == '__main__':
+    # app.run(debug=True, port=5000)
+    plot_thread = threading.Thread(target=plot_worker, daemon=True)
+    plot_thread.start()
+
+    # Run Flask in a separate thread
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()

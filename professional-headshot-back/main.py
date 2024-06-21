@@ -4,7 +4,6 @@ import json
 import re
 import threading
 import queue
-import matplotlib.pyplot as plt
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
@@ -180,7 +179,6 @@ def plot_worker():
         .process()
         .get()
         )
-        plt.show()
         return selected_images
 
 if __name__ == '__main__':

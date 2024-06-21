@@ -9,6 +9,7 @@ from functions.get_images import GetImages
 from functions.upload_images import UploadImages
 from functions.delete_images import DeleteImages
 from functions.upload_model_info import UploadModelInfo
+from functions.filter_images import FilterImages
 
 
 app = Flask(__name__)
@@ -75,9 +76,17 @@ def generate_images():
         job_id=job_id
     )
 
+    directory = os.getcwd()
+
+    selected_images = (
+        FilterImages(folder_path=directory)
+        .process()
+        .get()
+    )
+
     (
         UploadImages(
-            images=images,
+            images=selected_images,
             bucket=bucket_name,
             object_prefix=object_prefix)
         .process()

@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_socketio import SocketIO, emit
 import os
 import json
+import threading
 import re
-import queue
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
@@ -17,7 +18,11 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Allow requests from your frontend origin
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-plot_request_queue = queue.Queue()
+socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+
+generated_images = []
+verified_images = []
+images_event = threading.Event()
 
 # Train the model
 
@@ -138,6 +143,22 @@ def generate_images():
         job_id=job_id
     )
 
+    
+    global generated_images, verified_images
+    generated_images = images
+    verified_images = []
+    images_event.clear()
+    
+    socketio.emit('new_images', {'images': images})
+    
+    # Wait for verification
+    images_event.wait()
+    
+    # Proceed with verified images
+    return jsonify(
+        {'message':
+         'Image Generation and Verification is completed', 'verifiedImages': verified_images}), 200
+
     # plot_request_queue.put(True)
     # selected_images = plot_worker()
 
@@ -158,28 +179,26 @@ def generate_images():
 
     # link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
 
-    return jsonify(
-        {
-            'message': 'Image Generation is completed',
-            'path': f'Path to images {images}'
-        }
-    ), 200
-
 
 # Verify the images
 
 @app.route('/api/verify-images', methods=['POST'])
 def verify_images():
     data = request.json
-    images = data.get('allImages')
-    selected_images = data.get('selectedImages')
+    # images = data.get('allImages')
     e_mail = re.sub('@*', '', data.get('userEmail'))
     object_prefix = f"{str(data.get('userID'))}-{e_mail}/generated-images/"
     bucket_name = 'backend-professional-headshot-test-avahi'
 
+    valid_images = data.get('validImages')
+    
+    global verified_images
+    verified_images = valid_images
+    images_event.set()
+
     (
         UploadImages(
-            images=selected_images,
+            images=verified_images,
             bucket=bucket_name,
             object_prefix=object_prefix)
         .process()
@@ -187,7 +206,7 @@ def verify_images():
     )
 
     (
-        DeleteImages(images=images)
+        DeleteImages(images=generated_images)
         .process()
         .get()
     )

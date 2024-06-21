@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
-from flask_socketio import SocketIO, emit
 import os
 import json
 import threading
+import secrets
 import re
 from flask_cors import CORS
 from functions.run_training import RunTraining
@@ -15,14 +15,15 @@ from functions.upload_model_info import UploadModelInfo
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = secrets.token_hex(16)
 CORS(app, resources={r"/api/*": {"origins": "*"}})  # Allow requests from your frontend origin
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
 generated_images = []
 verified_images = []
 images_event = threading.Event()
+verification_event = threading.Event()
 
 # Train the model
 
@@ -82,6 +83,52 @@ async def get_ids():
     )
     return jsonify({'available_models': response_dict}), 200
 
+# Generate images thread
+
+def generate_images_thread(
+        api_key: str,
+        prompt: str,
+        job_id: str
+        ):
+    global generated_images, verified_images
+    # Simulate image generation delay
+    """
+    Generate images
+    """
+
+    (
+        GenerateImages(
+            api_key=api_key,
+            prompt=prompt,
+            job_id=job_id
+        )
+        .process()
+        .get()
+    )
+
+    """
+    Get the path for the generated images
+    """
+
+    folder_path = ''
+    directory = os.getcwd()
+    images = (
+        GetImages(
+            folder_name=folder_path,
+            directory=directory
+            )
+        .process()
+        .get()
+    )
+
+    with open(os.path.join(UPLOAD_FOLDER, 'output.json'), 'w') as f:
+        json.dump(images, f)
+    print("Training complete")
+
+    generated_images = images
+    verified_images = []
+    images_event.set()
+
 # Generate images
 
 @app.route('/api/generate-images', methods=['POST'])
@@ -92,115 +139,29 @@ def generate_images():
     job_id = data.get('jobID')
     classname = data.get('classname')
     e_mail = re.sub('@*', '', data.get('userEmail'))
-    user_id = str(data.get('userID'))
-    # phone = data.get('phoneNumber')
-    # object_prefix = f"{str(data.get('userID'))}-{e_mail}/generated-images/"
-    # bucket_name = 'backend-professional-headshot-test-avahi'
-
-    def generate_thread(
-            api_key: str,
-            prompt: str,
-            job_id: str):
-
-        """
-        Generate images
-        """
-
-        prompt = f"sks {classname} "  + prompt
-
-        (
-            GenerateImages(
-                api_key=api_key,
-                prompt=prompt,
-                job_id=job_id
-            )
-            .process()
-            .get()
-        )
-
-        """
-        Get the path for the generated images
-        """
-
-        folder_path = ''
-        directory = os.getcwd()
-        images = (
-            GetImages(
-                folder_name=folder_path,
-                directory=directory
-                )
-            .process()
-            .get()
-        )
-
-        with open(os.path.join(UPLOAD_FOLDER, 'output.json'), 'w') as f:
-            json.dump(images, f)
-        print("Training complete")
-        return images
-
-    images = generate_thread(
-        api_key=api_key,
-        prompt=prompt,
-        job_id=job_id
-    )
-
-    
-    global generated_images, verified_images
-    generated_images = images
-    verified_images = []
-    images_event.clear()
-    
-    socketio.emit('new_images',
-                  {'images': images,
-                   'userEmail': e_mail,
-                   'userID': user_id
-                   })
-    
-    # Wait for verification
-    images_event.wait()
-    
-    # Proceed with verified images
-    return jsonify(
-        {'message': 'Image Generation and Verification is completed',
-         'verifiedImages': verified_images
-         }), 200
-
-    # plot_request_queue.put(True)
-    # selected_images = plot_worker()
-
-    # (
-    #     UploadImages(
-    #         images=selected_images,
-    #         bucket=bucket_name,
-    #         object_prefix=object_prefix)
-    #     .process()
-    #     .get()
-    # )
-
-    # (
-    #     DeleteImages(images=images)
-    #     .process()
-    #     .get()
-    # )
-
-    # link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
-
-
-# Verify the images
-
-@app.route('/api/verify-images', methods=['POST'])
-def verify_images():
-    data = request.json
-    # images = data.get('allImages')
-    e_mail = re.sub('@*', '', data.get('userEmail'))
+    # user_id = str(data.get('userID'))
+    phone = data.get('phoneNumber')
     object_prefix = f"{str(data.get('userID'))}-{e_mail}/generated-images/"
     bucket_name = 'backend-professional-headshot-test-avahi'
 
-    valid_images = data.get('validImages')
-    
-    global verified_images
-    verified_images = valid_images
-    images_event.set()
+    prompt = f"sks {classname} "  + prompt
+
+    # images = generate_images_thread(
+    #     api_key=api_key,
+    #     prompt=prompt,
+    #     job_id=job_id
+    # )
+    threading.Thread(
+        target=generate_images_thread, args=(api_key, prompt, job_id)).start()
+
+    # Wait for the images to be generated
+    images_event.wait()
+
+    # Notify admin for verification
+    images_event.clear()
+
+    # Wait for verification to complete
+    verification_event.wait()
 
     (
         UploadImages(
@@ -218,14 +179,32 @@ def verify_images():
     )
 
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
-
+    verification_event.clear()
+    
+    # Proceed with verified images
     return jsonify(
-        {
-            'message': 'Image Generation is completed',
-            'link_to_images': link_to_images
-        }
-    ), 200
+        {'message': 'Image Generation and Verification is completed',
+         'verifiedImages': verified_images
+         }), 200
+
+    # plot_request_queue.put(True)
+    # selected_images = plot_worker()
+
+    
+
+
+# Verify the images
+
+@app.route('/api/verify-images', methods=['POST'])
+def verify_images():
+    data = request.json
+    valid_images = data.get('validImages')
+
+    global verified_images
+    verified_images = valid_images
+    verification_event.set()
+
+    return jsonify({'message': 'Image verification completed'}), 200
 
 if __name__ == '__main__':
-
-    socketio.run(app, host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

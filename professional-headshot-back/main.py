@@ -29,7 +29,7 @@ def generate_images():
     classname = data.get('classname')
     e_mail = re.sub('@*', '', data.get('userEmail'))
     phone = data.get('phoneNumber')
-    object_prefix = f'{str(data.get('userID'))}-{e_mail}/generated-images/'
+    object_prefix = f"{str(data.get('userID'))}-{e_mail}/generated-images/"
     bucket_name = 'backend-professional-headshot-test-avahi'
 
     def generate_thread(
@@ -123,7 +123,7 @@ def start_training():
     bucket_name = 'backend-professional-headshot-test-avahi'
     e_mail = re.sub('@*', '', data.get('userEmail'))
     phone = data.get('phoneNumber')
-    object_prefix = f'{str(data.get('userID'))}-{e_mail}/model-info/'
+    object_prefix = f"{str(data.get('userID'))}-{e_mail}/model-info/"
     # object_prefix = str(data.get('userID')) + '/model-info/'
  
     # Set API KEY
@@ -158,7 +158,7 @@ async def get_ids():
     data = request.json
     bucket = 'backend-professional-headshot-test-avahi'
     e_mail = re.sub('@*', '', data.get('userEmail'))
-    path = f'{str(data.get('userID'))}-{e_mail}/model-info/'
+    path = f"{str(data.get('userID'))}-{e_mail}/model-info/"
     # path = str(data.get('userID')) + '/model-info/'
 
     response_dict = (

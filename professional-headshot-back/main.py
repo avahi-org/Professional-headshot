@@ -83,7 +83,7 @@ def generate_images():
         job_id=job_id
     )
 
-
+    plot_request_queue.put(True)
     selected_images = plot_worker()
 
     (

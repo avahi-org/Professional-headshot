@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Upload from "./components/Upload";
 import Preview from "./components/Preview";
 import Slideshow from "./components/Slideshow";
@@ -16,16 +16,17 @@ const modelTypes = ["man", "woman"];
 
 const formatEta = (eta) => {
   const [hours, minutes, seconds] = eta.split(":").map(Number);
+  let totalSeconds = hours * 3600 + minutes * 60 + seconds;
   let result = "";
 
-  if (hours > 0) {
-    result += `${hours} hour${hours > 1 ? "s" : ""} `;
+  const displayMinutes = Math.floor(totalSeconds / 60);
+  const displaySeconds = totalSeconds % 60;
+
+  if (displayMinutes > 0) {
+    result += `${displayMinutes} minute${displayMinutes > 1 ? "s" : ""} `;
   }
-  if (minutes > 0) {
-    result += `${minutes} minute${minutes > 1 ? "s" : ""} `;
-  }
-  if (seconds > 0) {
-    result += `${seconds} second${seconds > 1 ? "s" : ""}`;
+  if (displaySeconds > 0) {
+    result += `${displaySeconds} second${displaySeconds > 1 ? "s" : ""}`;
   }
 
   return result.trim();
@@ -37,10 +38,16 @@ const predefinedPrompts = [
       "headshot of a banking professional wearing a nice suit with an office in the background",
     label: "professional",
   },
-  { value: "casual", label: "Casual" },
-  { value: "formal", label: "Formal" },
-  { value: "business", label: "Business" },
-  { value: "sporty", label: "Sporty" },
+  {
+    value:
+      "headshot of a lawyer wearing formal attire with a study that has bookcases in the back",
+    label: "lawyer",
+  },
+  {
+    value:
+      "headshot of a corporate businessperson wearing a nice suit with an office in the background",
+    label: "businessperson",
+  },
 ];
 
 const App = () => {
@@ -56,6 +63,8 @@ const App = () => {
   const [idsOptions, setIdsOptions] = useState([]);
   const [selectedId, setSelectedId] = useState();
   const [userId, setUserId] = useState();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [countdown, setCountdown] = useState(null);
 
   const simulateTraining = () => {
     startTraining();
@@ -68,19 +77,48 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (step === 3 && userId) {
+    if (step === 2 && etaDuration) {
+      const [hours, minutes, seconds] = etaDuration.split(":").map(Number);
+      let totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+      const interval = setInterval(() => {
+        totalSeconds -= 1;
+        if (totalSeconds <= 0) {
+          clearInterval(interval);
+          setCountdown(null); // Clear countdown when finished
+        } else {
+          const displayHours = Math.floor(totalSeconds / 3600);
+          const displayMinutes = Math.floor((totalSeconds % 3600) / 60);
+          const displaySeconds = totalSeconds % 60;
+          setCountdown(
+            `${displayHours}:${displayMinutes
+              .toString()
+              .padStart(2, "0")}:${displaySeconds.toString().padStart(2, "0")}`
+          );
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [step, etaDuration]);
+
+  useEffect(() => {
+    if (step === 3 && userId?.value) {
       const loadData = async () => {
         try {
           const idsData = await fetchIds(
             process.env.REACT_APP_ASTRIA_API_KEY,
-            userId
+            userId?.value,
+            userId?.label
           );
-          const options = Object.entries(idsData).map(([key, value]) => ({
-            value: value,
-            label: key,
-          }));
+          if (idsData) {
+            const options = Object.entries(idsData).map(([key, value]) => ({
+              value: value,
+              label: key,
+            }));
+            setIdsOptions(options);
+          }
 
-          setIdsOptions(options);
           setIsLoading(false);
         } catch (error) {
           console.error("Error fetching IDs:", error);
@@ -91,18 +129,19 @@ const App = () => {
 
       loadData();
     }
-  }, [step, userId]);
+  }, [step, userId?.value]);
 
-  const fetchIds = async (apiKey, userID) => {
+  const fetchIds = async (apiKey, userID, userEmail) => {
     try {
       const response = await fetch("http://127.0.0.1:5000/api/get-ids", {
-        method: "POST", // Change method to POST
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ apiKey, userID }),
+        body: JSON.stringify({ apiKey, userID, userEmail }),
       });
       const data = await response.json();
+      console.log("data?", data);
       return data?.available_models;
     } catch (error) {
       console.error("Error fetching IDs:", error);
@@ -126,18 +165,14 @@ const App = () => {
     setTrainingName(event.target.value);
   };
 
-  console.log(
-    "process.env.REACT_APP_API_KEY",
-    process.env.REACT_APP_ASTRIA_API_KEY
-  );
-
   const startGeneratingPhotos = async () => {
     const payload = {
       apiKey: process.env.REACT_APP_ASTRIA_API_KEY,
       classname: modelType,
       prompt: prompt,
       jobID: selectedId?.value,
-      userID: userId,
+      userID: userId?.value,
+      userEmail: userId?.label,
     };
     setIsLoading(true);
     setStep(4); // Move to step 4 immediately to show loading animation
@@ -226,7 +261,9 @@ const App = () => {
       jobName: trainingName,
       classname: modelType,
       imagesInBucketPath: folderName,
-      userID: userId,
+      userID: userId?.value,
+      userEmail: userId?.label,
+      phoneNumber: phoneNumber || "", // Include phone number in payload
     };
 
     try {
@@ -240,16 +277,23 @@ const App = () => {
       });
 
       const data = await response.json();
-      // TODO: test the eta and pass it to the training to be more exact.
 
-      // setEtaDuration(formatEta(data.eta))
-      toast.success("Training started successfully.");
+      if (data.eta) {
+        const etaMillis =
+          data.eta.split(":").reduce((acc, time) => 60 * acc + +time) * 1000;
+        setEtaDuration(formatEta(data.eta));
 
-      // Simulate 10 minutes loading time
-      setTimeout(() => {
+        toast.success("Training started successfully.");
+
+        // Set the timeout based on the ETA
+        setTimeout(() => {
+          setIsLoading(false);
+          setStep(3);
+        }, etaMillis);
+      } else {
+        toast.error("Failed to get ETA from the server.");
         setIsLoading(false);
-        setStep(3);
-      }, 660000); // 660000 milliseconds = 11 minutes
+      }
     } catch (error) {
       console.error("Error starting training:", error);
       toast.error("Error starting training.");
@@ -282,9 +326,15 @@ const App = () => {
     setSelectedId(selectedOption);
   };
 
+  const handlePhoneNumberChange = (phone) => {
+    setPhoneNumber(phone);
+  };
+
   const handleReset = () => {
     setUploadedImages([]);
     setGeneratedImages([]);
+    setPhoneNumber("");
+    setTrainingName("");
     setStep(1);
   };
 
@@ -351,14 +401,18 @@ const App = () => {
 
             {isLoading ? (
               <LottieAnimation
-                etaDuration={"11 Minutes"}
+                countdown={countdown}
                 description={"Training the model..."}
               />
             ) : (
               <div className="flex flex-col items-center w-full space-y-6">
                 <div className="w-full max-w-md">
-                  <UserSelector onUserSelect={handleUserSelect} />
+                  <UserSelector
+                    onUserSelect={handleUserSelect}
+                    onPhoneChange={handlePhoneNumberChange}
+                  />
                 </div>
+
                 <div className="w-full max-w-md">
                   <div className="flex flex-col items-start mb-0">
                     <label className="text-xl font-sans font-semibold text-gray-700 mb-2">
@@ -398,14 +452,28 @@ const App = () => {
 
                 <div className="w-full max-w-md">
                   <button
+                    disabled={!userId && !trainingName}
                     onClick={handleNextStep}
-                    className="bg-purple-500 font-sans font-semibold text-white w-full py-4 px-6 rounded-2xl hover:bg-purple-600 text-lg transition-transform transform hover:scale-105"
+                    className={`bg-purple-500 font-sans font-semibold text-white w-full py-4 px-6 rounded-2xl transition-transform transform hover:scale-105 ${
+                      !userId && !trainingName
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-purple-600"
+                    }`}
                   >
                     Next
                   </button>
                   <p
-                    onClick={() => handleSkipStep(3)}
-                    className="font-sans font-semibold text-blue-500 w-full py-4 px-6 rounded-2xl hover:text-blue-600 text-lg transition-transform transform hover:scale-105 mt-4 cursor-pointer hover:underline text-center"
+                    onClick={() => {
+                      if (userId) {
+                        handleSkipStep(3);
+                      }
+                    }}
+                    className={`font-sans font-semibold text-blue-500 w-full py-4 px-6 rounded-2xl transition-transform transform text-lg mt-4 text-center ${
+                      !userId
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:text-blue-600 hover:scale-105 cursor-pointer hover:underline"
+                    }`}
+                    disabled={!userId}
                   >
                     Skip
                   </p>
@@ -450,6 +518,7 @@ const App = () => {
               </div>
               <textarea
                 value={prompt}
+                disabled={true}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={4} // Adjust the number of rows as needed
                 className="bg-white border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl mb-4 w-full sm:w-96 transition-transform transform hover:scale-105 hover:shadow-lg resize-none"
@@ -459,7 +528,13 @@ const App = () => {
             <div className="flex items-center justify-center">
               <button
                 onClick={handleNextStep}
-                className="bg-purple-500 text-white font-semibold w-full sm:w-96 py-4 text-lg px-6 rounded-2xl hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
+                className={`bg-purple-500 text-white font-semibold w-full sm:w-96 py-4 text-lg px-6 rounded-2xl transition-transform transform hover:scale-105 mt-4 mb-2 ${
+                  !selectedId
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-purple-600"
+                }`}
+                aria-label="Proceed to next step"
+                disabled={!selectedId}
               >
                 Next
               </button>

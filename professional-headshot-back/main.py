@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import os
 import json
+import re
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
@@ -26,7 +27,8 @@ def generate_images():
     prompt = data.get('prompt')
     job_id = data.get('jobID')
     classname = data.get('classname')
-    object_prefix = str(data.get('userID')) + '/generated-images/'
+    e_mail = re.sub('@*', '', data.get('userEmail'))
+    object_prefix = f'{str(data.get('userID'))}-{e_mail}/generated-images/'
     bucket_name = 'backend-professional-headshot-test-avahi'
 
     def generate_thread(
@@ -118,7 +120,9 @@ def start_training():
     classname = data.get('classname')
     path = data.get('imagesInBucketPath') + '/'
     bucket_name = 'backend-professional-headshot-test-avahi'
-    object_prefix = str(data.get('userID')) + '/model-info/'
+    e_mail = re.sub('@*', '', data.get('userEmail'))
+    object_prefix = f'{str(data.get('userID'))}-{e_mail}/model-info/'
+    # object_prefix = str(data.get('userID')) + '/model-info/'
  
     # Set API KEY
     os.environ['ASTRIA_API_TOKEN'] = api_key
@@ -151,7 +155,9 @@ def start_training():
 async def get_ids():
     data = request.json
     bucket = 'backend-professional-headshot-test-avahi'
-    path = str(data.get('userID')) + '/model-info/'
+    e_mail = re.sub('@*', '', data.get('userEmail'))
+    path = f'{str(data.get('userID'))}-{e_mail}/model-info/'
+    # path = str(data.get('userID')) + '/model-info/'
 
     response_dict = (
         GetModelInfo(

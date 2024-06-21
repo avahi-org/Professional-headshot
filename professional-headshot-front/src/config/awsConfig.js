@@ -27,7 +27,7 @@ export const uploadFileToS3 = async (file, folderName, bucketName) => {
     const command = new PutObjectCommand(params);
     const data = await s3.send(command);
     return {
-      url: `https://${bucketName}.s3.us-east-1.amazonaws.com/${fileName}`,
+      url: `https://${bucketName}.s3.${process.env.REACT_APP_AWS_BUCKET_REGION}.amazonaws.com/${fileName}`,
       data,
     };
   } catch (err) {
@@ -46,7 +46,7 @@ export const listFilesInS3Folder = async (folderName, bucketName) => {
     const command = new ListObjectsV2Command(params);
     const data = await s3.send(command);
     const files = data.Contents.map((item) => {
-      return `https://${bucketName}.s3.us-east-1.amazonaws.com/${item.Key}`;
+      return `https://${bucketName}.s3.${process.env.REACT_APP_AWS_BUCKET_REGION}.amazonaws.com/${item.Key}`;
     });
 
     console.log("files", files);

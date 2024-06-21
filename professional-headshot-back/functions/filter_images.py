@@ -1,5 +1,7 @@
 import os
 from PIL import Image
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 from dataclasses import dataclass

@@ -52,7 +52,7 @@ class GetInfo:
                         datetime.strptime(clean_value, "%Y-%m-%dT%H%M%S.%fZ"))
         
         real_eta = self.timestamp_list[0] - self.timestamp_list[1]
-        self.values_dict['eta'] = str(real_eta)
+        self.values_dict['eta'] = re.sub('\.*', '', str(real_eta))
         return self
 
     def get(self) -> dict:

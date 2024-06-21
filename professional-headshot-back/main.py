@@ -183,14 +183,8 @@ def plot_worker():
         plt.show()
         return selected_images
 
-def run_flask():
-    app.run(debug=True, port=5000)
-
 if __name__ == '__main__':
-    # app.run(debug=True, port=5000)
     plot_thread = threading.Thread(target=plot_worker, daemon=True)
     plot_thread.start()
 
-    # Run Flask in a separate thread
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
+    app.run(debug=True, port=5000)

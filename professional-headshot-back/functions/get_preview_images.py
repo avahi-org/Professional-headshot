@@ -36,3 +36,12 @@ class GetPreviewImages():
 
     def get(self) -> list:
         return self.images_path
+
+# bucket = 'backend-professional-headshot-test-avahi'
+# key = 'test-folder/preview-images/'
+
+# images = GetPreviewImages(BUCKET_NAME=bucket, PATH=key).process().get()
+# print(images)
+# for image in images:
+#     name = image.split('/')[-1]
+#     print(name)

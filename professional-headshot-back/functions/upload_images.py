@@ -8,8 +8,8 @@ from botocore.config import Config
 class UploadImages:
 
     images: list
-    bucket: str = "backend-professional-headshot-test-avahi"
-    object_prefix: str = 'images/'
+    bucket: str
+    object_prefix: str
 
     def process(self):
         s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))

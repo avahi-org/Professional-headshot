@@ -12,7 +12,7 @@ from functions.get_images import GetImages
 from functions.upload_images import UploadImages
 from functions.delete_images import DeleteImages
 from functions.upload_model_info import UploadModelInfo
-from functions.delete_preview import DeletePreview
+from functions.save_verified import SaveVerified 
 from functions.get_preview_images import GetPreviewImages
 
 app = Flask(__name__)
@@ -190,17 +190,14 @@ def generate_images():
     verification_event.wait()
 
     object_prefix = f"{user_id}-{e_mail}/generated-images/"
-    key = f"{user_id}-{e_mail}/preview-images/"
     bucket_name = 'backend-professional-headshot-test-avahi'
 
-    UploadImages(
-        images=verified_images,
-        bucket=bucket_name,
-        object_prefix=object_prefix
-    ).process().get()
+    SaveVerified(
+        bucket_name=bucket_name,
+        user_key=f'{user_id}-{e_mail}',
+        images=verified_images).process().get()
 
     DeleteImages(images=local_images).process().get()
-    DeletePreview(bucket_name=bucket_name, s3_object=key)
 
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
     verification_event.clear()

@@ -142,6 +142,8 @@ def generate_images_thread(
         object_prefix=object_prefix
     ).process().get()
 
+    DeleteImages(images=images).process().get()
+
     """
     Get the path from the temporary S3 object
     """
@@ -197,7 +199,7 @@ def generate_images():
         user_key=f'{user_id}-{e_mail}',
         images=verified_images).process().get()
 
-    DeleteImages(images=local_images).process().get()
+    # DeleteImages(images=local_images).process().get()
 
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
     verification_event.clear()

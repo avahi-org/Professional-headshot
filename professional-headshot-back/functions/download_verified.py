@@ -16,6 +16,10 @@ class DownloadVerified():
     verified_images: list
 
     def process(self):
+        print(f"""--------------------------------------------------------------
+These are the verified images:
+{self.verified_images}
+--------------------------------------------------------------""")
         s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
         try:
             my_bucket = s3.Bucket(self.BUCKET_NAME)

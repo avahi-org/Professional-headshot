@@ -25,7 +25,6 @@ class SaveVerified:
                        .process()
                        .get()
         )
-        print('Downloaded verified images')
 
         directory = os.getcwd()
         folder_path = ''

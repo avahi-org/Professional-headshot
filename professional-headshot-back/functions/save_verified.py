@@ -3,7 +3,6 @@ import os
 import boto3
 from botocore import UNSIGNED
 from botocore.config import Config
-from functions.get_preview_images import GetPreviewImages
 from functions.download_verified import DownloadVerified
 from functions.get_images import GetImages
 from functions.upload_images import UploadImages
@@ -21,7 +20,7 @@ class SaveVerified:
         preview_path = 'preview-images'
         (
             DownloadVerified(BUCKET_NAME=self.bucket_name,
-                       PATH=f'{user_key}/{preview_path}/',
+                       PATH=f'{self.user_key}/{preview_path}/',
                        verified_images=self.images)
                        .process()
                        .get()
@@ -56,12 +55,3 @@ class SaveVerified:
 
     def get(self) -> None:
         return None
-
-
-bucket = 'backend-professional-headshot-test-avahi'
-key = 'test-folder/preview-images/'
-user_key = 'test-folder'
-
-images = GetPreviewImages(BUCKET_NAME=bucket, PATH=key).process().get()
-
-SaveVerified(bucket_name=bucket, user_key=user_key, images=images).process().get()

@@ -1,0 +1,55 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.image-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.image-wrapper {
+  margin: 10px;
+  border: 2px solid red;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.image-wrapper.selected {
+  border-color: green;
+  transform: scale(1.05);
+}
+
+.image {
+  width: 400px;
+  height: 400px;
+  object-fit: cover;
+}
+
+.submit-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+  background-color: #0056b3;
+}
+
+.submit-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.submission-message {
+  margin-top: 20px;
+  font-size: 18px;
+  color: green;
+}

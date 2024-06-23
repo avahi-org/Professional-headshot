@@ -18,7 +18,9 @@ const UserSelector = ({ onUserSelect, onPhoneChange }) => {
   const [newUser, setNewUser] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [nextUserId, setNextUserId] = useState(
-    userOptions?.length ? Math.max(...userOptions?.map((u) => u?.value)) + 1 : 1
+    userOptions?.length > 0
+      ? Math.max(...userOptions.map((u) => u.value)) + 1
+      : 1
   );
 
   useEffect(() => {

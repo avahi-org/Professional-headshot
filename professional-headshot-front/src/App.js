@@ -75,8 +75,6 @@ const App = () => {
     setUploadedImages((prevImages) => [...prevImages, ...newImages]);
   };
 
-  console.log("userId", userId);
-
   useEffect(() => {
     if (step === 3 && userId?.value) {
       const loadData = async () => {
@@ -108,13 +106,16 @@ const App = () => {
 
   const fetchIds = async (apiKey, userID, userEmail) => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/get-ids", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ apiKey, userID, userEmail }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_PATH}/api/get-ids`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ apiKey, userID, userEmail }),
+        }
+      );
       const data = await response.json();
       console.log("data?", data);
       return data?.available_models;
@@ -154,7 +155,7 @@ const App = () => {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:5000/api/generate-images",
+        `${process.env.REACT_APP_API_PATH}/api/generate-images`,
         {
           method: "POST",
           headers: {
@@ -243,13 +244,16 @@ const App = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch("http://127.0.0.1:5000/api/start-training", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_PATH}/api/start-training`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await response.json();
 
@@ -376,7 +380,7 @@ const App = () => {
 
             {isLoading ? (
               <LottieAnimation
-                etaDuration={etaDuration}
+                countdown={etaDuration}
                 description={"Training the model..."}
               />
             ) : (

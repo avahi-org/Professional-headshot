@@ -8,6 +8,7 @@ const App = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [queue, setQueue] = useState([]);
 
   useEffect(() => {
     const eventSource = new EventSource(
@@ -16,18 +17,30 @@ const App = () => {
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("data images", data.images);
-      setImages(data.images);
-      setDetails(data.details);
-      setSelectedImages([]);
-      setSubmissionMessage("");
-      setLoading(false);
+      setQueue((prevQueue) => [...prevQueue, data]);
     };
 
     return () => {
       eventSource.close();
     };
   }, []);
+
+  useEffect(() => {
+    if (queue.length > 0 && !loading && !isSubmitting) {
+      processQueue();
+    }
+  }, [queue, loading, isSubmitting]);
+
+  const processQueue = async () => {
+    setLoading(true);
+    const data = queue[0];
+    console.log("Processing data:", data);
+    setImages(data.images);
+    setDetails(data.details);
+    setSelectedImages([]);
+    setSubmissionMessage("");
+    setLoading(false);
+  };
 
   const handleImageSelect = (image) => {
     setSelectedImages((prev) =>
@@ -54,7 +67,23 @@ const App = () => {
       .then((data) => {
         setIsSubmitting(false);
         setSubmissionMessage(data.message);
+        // Dequeue the processed item and reset the state
+        setQueue((prevQueue) => prevQueue.slice(1));
+        resetState();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setIsSubmitting(false);
+        setSubmissionMessage("An error occurred. Please try again.");
       });
+  };
+
+  const resetState = () => {
+    setImages([]);
+    setDetails({});
+    setSelectedImages([]);
+    setSubmissionMessage("");
+    setLoading(false);
   };
 
   return (

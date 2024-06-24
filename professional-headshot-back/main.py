@@ -4,7 +4,6 @@ import json
 import threading
 import secrets
 import re
-import time
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
@@ -13,7 +12,6 @@ from functions.get_images import GetImages
 from functions.upload_images import UploadImages
 from functions.delete_images import DeleteImages
 from functions.upload_model_info import UploadModelInfo
-from functions.save_verified import SaveVerified
 from functions.get_preview_images import GetPreviewImages
 
 app = Flask(__name__)
@@ -94,90 +92,9 @@ async def get_ids():
 
     return jsonify({'available_models': response_dict}), 200
 
-# Generate images thread
-
-def generate_images_thread(
-        api_key: str,
-        prompt: str,
-        job_id: str,
-        classname: str,
-        e_mail: str,
-        user_id: str):
-    global generated_images, verified_images, verification_details, local_images
-
-    # Simulate image generation delay
-
-    """
-    Generate images
-    """
-    bucket_name = 'backend-professional-headshot-test-avahi'
-    object_prefix = f"{user_id}-{e_mail}/preview-images/"
-    user_folder = f"{user_id}-{e_mail}"
-    prompt = f"sks {classname} "  + prompt
-    GenerateImages(
-        api_key=api_key,
-        prompt=prompt,
-        job_id=job_id
-    ).process().get()
-
-    """
-    Get the path for the generated images
-    """
-    directory = os.getcwd()
-
-    folder_path = user_folder
-    images = GetImages(
-        folder_name=folder_path,
-        directory=directory
-    ).process().get()
-
-    with open(os.path.join(UPLOAD_FOLDER, 'output.json'), 'w') as f:
-        json.dump(images, f)
-
-    print("Training complete")
-
-    local_images = images # Save local path to delete images from local
-
-    """
-    Upload the obtained images to a temporary S3 object
-    """
-    UploadImages(
-        images=images,
-        bucket=bucket_name,
-        object_prefix=object_prefix
-    ).process().get()
-
-    DeleteImages(images=images).process().get()
-
-    """
-    Get the path from the temporary S3 object
-    """
-
-    generated_images = (
-        GetPreviewImages(
-            BUCKET_NAME=bucket_name,
-            PATH=object_prefix
-        )
-        .process()
-        .get()
-    )
-
-    # verified_images = []
-    # verification_details.update({
-    #     'apiKey': api_key,
-    #     'prompt': prompt,
-    #     'jobID': job_id,
-    #     'classname': classname,
-    #     'e_mail': e_mail,
-    #     'userID': user_id
-    # })
-
-    # images_event.set()
-
 # Generate images
 
 @app.route('/api/generate-images', methods=['POST'])
-
 def generate_images():
     data = request.json
     api_key = data.get('apiKey')
@@ -224,30 +141,8 @@ def generate_images():
 
     DeleteImages(images=images).process().get()
 
-    # threading.Thread(
-    #     target=generate_images_thread, args=(api_key, prompt, job_id, classname, e_mail, user_id)).start()
-
-    # # Wait for the images to be generated
-    # # images_event.wait()
-
-    # # Notify admin for verification
-    # # images_event.clear()
-
-    # # Wait for verification to complete
-    # # verification_event.wait()
-    # object_prefix = f"{user_id}-{e_mail}/generated-images/"
-    # bucket_name = 'backend-professional-headshot-test-avahi'
-    # SaveVerified(
-    #     bucket_name=bucket_name,
-    #     user_key=f'{user_id}-{e_mail}',
-    #     images=generated_images).process().get()
-
-    # DeleteImages(images=local_images).process().get()
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
     print("Image generation and upload is complete")
-    # verification_event.clear()
-
-    # Proceed with verified images
 
     response = jsonify({'message': 'Image Generation and Verification is completed', 'link_to_images': link_to_images})
     reset_globals()  # Reset global variables

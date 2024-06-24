@@ -114,15 +114,10 @@ def generate_images_thread(
     object_prefix = f"{user_id}-{e_mail}/preview-images/"
     user_folder = f"{user_id}-{e_mail}"
     prompt = f"sks {classname} "  + prompt
-    directory = os.getcwd()
-    # user_folder=f"{user_id}-{e_mail}"
-    download_path = f"{directory}/{user_folder}"
     GenerateImages(
         api_key=api_key,
-        output_path=download_path,
         prompt=prompt,
-        job_id=job_id,
-        custom_path=user_folder
+        job_id=job_id
     ).process().get()
 
     time.sleep(120)
@@ -130,6 +125,7 @@ def generate_images_thread(
     """
     Get the path for the generated images
     """
+    directory = os.getcwd()
 
     folder_path = user_folder
     images = GetImages(

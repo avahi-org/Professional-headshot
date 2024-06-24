@@ -16,6 +16,9 @@ class GenerateImages:
     def process(self):
         # Set API KEY
         job_id = str(self.job_id)
+        create_folder_command_list = ['mkdir', self.working_dir]
+        subprocess.run(create_folder_command_list)
+        print(f"This was the command for creating the folder: {create_folder_command_list}")
         os.environ['ASTRIA_API_TOKEN'] = self.api_key
         directory = os.getcwd()
 
@@ -24,7 +27,6 @@ class GenerateImages:
                         "--download", job_id, self.prompt]
         
         # print('command list',command_list)
-        subprocess.run(['mkdir', self.working_dir])
         subprocess.run(command_list, cwd=f'{directory}/{self.working_dir}')
 
         return self

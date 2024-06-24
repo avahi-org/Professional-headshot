@@ -108,7 +108,7 @@ def generate_images():
     bucket_name = 'backend-professional-headshot-test-avahi'
     object_prefix = f"{user_id}-{e_mail}/generated-images/"
     prompt = f"sks {classname} "  + prompt
-    temp_folder = f"{user_id}-{e_mail}"
+    temp_folder = f"{user_id}{e_mail}"
     GenerateImages(
         api_key=api_key,
         prompt=prompt,

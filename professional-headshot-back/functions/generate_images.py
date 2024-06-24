@@ -7,10 +7,11 @@ from random import randint
 @dataclass
 class GenerateImages:
     api_key: str
+    output_path: str
     prompt: str = 'sks man headshot of a banking professional wearing a nice suit'
     job_id: str = '1371459'
     steps: str = '80'
-    seed: int = str(randint(1, 15000))
+    seed: str = str(randint(1, 15000))
 
     def process(self):
         # Set API KEY
@@ -18,6 +19,7 @@ class GenerateImages:
 
         command_list = ["python", "functions/astria.py", "gen",
                         "--steps", self.steps, "--seed", self.seed,
+                        "--outdir", self.output_path,
                         "--download", str(self.job_id), self.prompt]
         
         print('command list',command_list)

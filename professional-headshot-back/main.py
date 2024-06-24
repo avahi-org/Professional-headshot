@@ -111,19 +111,24 @@ def generate_images_thread(
     """
     bucket_name = 'backend-professional-headshot-test-avahi'
     object_prefix = f"{user_id}-{e_mail}/preview-images/"
+    user_folder = f"{user_id}-{e_mail}"
     prompt = f"sks {classname} "  + prompt
+    directory = os.getcwd()
+    # user_folder=f"{user_id}-{e_mail}"
+    download_path = f"{directory}/{user_folder}"
     GenerateImages(
         api_key=api_key,
+        output_path=download_path,
         prompt=prompt,
-        job_id=job_id
+        job_id=job_id,
+        custom_path=user_folder
     ).process().get()
 
     """
     Get the path for the generated images
     """
 
-    folder_path = ''
-    directory = os.getcwd()
+    folder_path = user_folder
     images = GetImages(
         folder_name=folder_path,
         directory=directory
@@ -160,17 +165,17 @@ def generate_images_thread(
         .get()
     )
 
-    verified_images = []
-    verification_details.update({
-        'apiKey': api_key,
-        'prompt': prompt,
-        'jobID': job_id,
-        'classname': classname,
-        'e_mail': e_mail,
-        'userID': user_id
-    })
+    # verified_images = []
+    # verification_details.update({
+    #     'apiKey': api_key,
+    #     'prompt': prompt,
+    #     'jobID': job_id,
+    #     'classname': classname,
+    #     'e_mail': e_mail,
+    #     'userID': user_id
+    # })
 
-    images_event.set()
+    # images_event.set()
 
 # Generate images
 
@@ -189,23 +194,23 @@ def generate_images():
         target=generate_images_thread, args=(api_key, prompt, job_id, classname, e_mail, user_id)).start()
 
     # Wait for the images to be generated
-    images_event.wait()
+    # images_event.wait()
 
     # Notify admin for verification
-    images_event.clear()
+    # images_event.clear()
 
     # Wait for verification to complete
-    verification_event.wait()
+    # verification_event.wait()
     object_prefix = f"{user_id}-{e_mail}/generated-images/"
     bucket_name = 'backend-professional-headshot-test-avahi'
     SaveVerified(
         bucket_name=bucket_name,
         user_key=f'{user_id}-{e_mail}',
-        images=verified_images).process().get()
+        images=generated_images).process().get()
 
     # DeleteImages(images=local_images).process().get()
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
-    verification_event.clear()
+    # verification_event.clear()
 
     # Proceed with verified images
 

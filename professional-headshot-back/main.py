@@ -120,8 +120,6 @@ def generate_images_thread(
         job_id=job_id
     ).process().get()
 
-    time.sleep(120)
-
     """
     Get the path for the generated images
     """
@@ -189,26 +187,67 @@ def generate_images():
     e_mail = re.sub('@*', '', data.get('userEmail'))
     user_id = str(data.get('userID'))
 
-    threading.Thread(
-        target=generate_images_thread, args=(api_key, prompt, job_id, classname, e_mail, user_id)).start()
 
-    # Wait for the images to be generated
-    # images_event.wait()
-
-    # Notify admin for verification
-    # images_event.clear()
-
-    # Wait for verification to complete
-    # verification_event.wait()
-    object_prefix = f"{user_id}-{e_mail}/generated-images/"
     bucket_name = 'backend-professional-headshot-test-avahi'
-    SaveVerified(
-        bucket_name=bucket_name,
-        user_key=f'{user_id}-{e_mail}',
-        images=generated_images).process().get()
+    object_prefix = f"{user_id}-{e_mail}/preview-images/"
+    user_folder = f"{user_id}-{e_mail}"
+    prompt = f"sks {classname} "  + prompt
+    GenerateImages(
+        api_key=api_key,
+        prompt=prompt,
+        job_id=job_id
+    ).process().get()
+
+    """
+    Get the path for the generated images
+    """
+    directory = os.getcwd()
+
+    folder_path = user_folder
+    images = GetImages(
+        folder_name=folder_path,
+        directory=directory
+    ).process().get()
+
+    with open(os.path.join(UPLOAD_FOLDER, 'output.json'), 'w') as f:
+        json.dump(images, f)
+
+    print("Training complete")
+
+    local_images = images # Save local path to delete images from local
+
+    """
+    Upload the obtained images to a temporary S3 object
+    """
+    UploadImages(
+        images=images,
+        bucket=bucket_name,
+        object_prefix=object_prefix
+    ).process().get()
+
+    DeleteImages(images=images).process().get()
+
+    # threading.Thread(
+    #     target=generate_images_thread, args=(api_key, prompt, job_id, classname, e_mail, user_id)).start()
+
+    # # Wait for the images to be generated
+    # # images_event.wait()
+
+    # # Notify admin for verification
+    # # images_event.clear()
+
+    # # Wait for verification to complete
+    # # verification_event.wait()
+    # object_prefix = f"{user_id}-{e_mail}/generated-images/"
+    # bucket_name = 'backend-professional-headshot-test-avahi'
+    # SaveVerified(
+    #     bucket_name=bucket_name,
+    #     user_key=f'{user_id}-{e_mail}',
+    #     images=generated_images).process().get()
 
     # DeleteImages(images=local_images).process().get()
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
+    print("Image generation and upload is complete")
     # verification_event.clear()
 
     # Proceed with verified images

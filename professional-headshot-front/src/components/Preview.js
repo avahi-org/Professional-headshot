@@ -5,7 +5,7 @@ const Preview = ({ images, onRemove }) => {
   return (
     <div className="max-w-[70rem] mx-4 sm:mx-auto  bg-white shadow-lg rounded-lg p-6 mt-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {images.map((image, index) => (
+        {images?.map((image, index) => (
           <div key={index} className="relative group">
             <img
               src={image}

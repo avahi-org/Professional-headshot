@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Upload from "./components/Upload";
 import Preview from "./components/Preview";
 import Slideshow from "./components/Slideshow";
@@ -6,31 +6,13 @@ import Breadcrumb from "./components/Breadcrumb";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProgressBar from "./components/ProgressBar";
-import { listFilesInS3Folder, uploadFileToS3 } from "./config/awsConfig"; // Import your AWS S3 configuration
+import { listFilesInS3Folder, uploadFileToS3 } from "./config/awsConfig";
 import Select from "react-select";
 import LottieAnimation from "./components/LottieAnimation";
 import ProgressIndicator from "./components/ProgressIndicator";
 import UserSelector from "./components/UserSelector";
 
 const modelTypes = ["man", "woman"];
-
-const formatEta = (eta) => {
-  const [hours, minutes, seconds] = eta.split(":").map(Number);
-  let totalSeconds = hours * 3600 + minutes * 60 + seconds;
-  let result = "";
-
-  const displayMinutes = Math.floor(totalSeconds / 60);
-  const displaySeconds = totalSeconds % 60;
-
-  if (displayMinutes > 0) {
-    result += `${displayMinutes} minute${displayMinutes > 1 ? "s" : ""} `;
-  }
-  if (displaySeconds > 0) {
-    result += `${displaySeconds} second${displaySeconds > 1 ? "s" : ""}`;
-  }
-
-  return result.trim();
-};
 
 const predefinedPrompts = [
   {
@@ -49,23 +31,6 @@ const predefinedPrompts = [
     label: "businessperson",
   },
 ];
-
-const testEtaConversion = (etaString) => {
-  const etaParts = etaString.split(":");
-
-  // Extract hours and minutes
-  const hours = parseInt(etaParts[0], 10);
-  const minutes = parseInt(etaParts[1], 10);
-
-  // Extract seconds and milliseconds correctly
-  const secondsWithMillis = etaParts[2];
-  const seconds = parseInt(secondsWithMillis.slice(0, 2), 10); // Take the first two digits for seconds
-  const milliseconds = parseInt(secondsWithMillis.slice(2), 10); // Take the remaining digits for milliseconds
-
-  const etaMillis =
-    (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
-  return etaMillis;
-};
 
 const convertEtaToMillis = (etaString) => {
   const [hours, minutes, secondsWithMillis] = etaString.split(":");
@@ -130,7 +95,7 @@ const App = () => {
 
       loadData();
     }
-  }, [step, userId?.value]);
+  }, [step, userId?.value, userId?.label]);
 
   const fetchIds = async (apiKey, userID, userEmail) => {
     try {
@@ -232,7 +197,7 @@ const App = () => {
         if (!trainingName) {
           toast.error("Please enter a training name.");
           return;
-        } else if (!uploadedImages.length < 10) {
+        } else if (uploadedImages.length < 10) {
           toast.error(
             "To start training the model, you should upload at least 10 images!"
           );
@@ -302,7 +267,6 @@ const App = () => {
 
         // Set the timeout based on the ETA
         setTimeout(() => {
-          console.log("here?!?!? why", etaMillis);
           setIsLoading(false);
           setStep(3);
         }, etaMillis);
@@ -353,8 +317,6 @@ const App = () => {
     setTrainingName("");
     setStep(1);
   };
-
-  console.log("uploadedImages", uploadedImages.length);
 
   return (
     <div className=" container min-h-screen h-full max-w-[2000px] w-full bg-cover bg-[#efefe9] flex flex-col items-center py-10 font-sans">

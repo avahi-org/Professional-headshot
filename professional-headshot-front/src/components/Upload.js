@@ -2,26 +2,63 @@ import React, { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-toastify";
 import { CloudUploadIcon } from "@heroicons/react/outline";
+import heic2any from "heic2any";
+
+const convertHeicToJpeg = async (file) => {
+  if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
+    try {
+      const jpegBlob = await heic2any({
+        blob: file,
+        toType: "image/jpeg",
+        quality: 0.8,
+      });
+      return new File([jpegBlob], file.name.replace(/\.heic$/i, ".jpg"), {
+        type: "image/jpeg",
+      });
+    } catch (error) {
+      console.error("Error converting HEIC to JPEG:", error);
+      return null;
+    }
+  }
+  return file;
+};
 
 const Upload = ({ onUpload }) => {
   const onDrop = useCallback(
-    (acceptedFiles) => {
+    async (acceptedFiles) => {
       const validFiles = [];
       const invalidFiles = [];
 
-      acceptedFiles.forEach((file) => {
-        if (file.type.startsWith("image/")) {
-          validFiles.push(file);
+      toast.info("Processing files...", {
+        autoClose: false,
+        toastId: "processing",
+      });
+
+      for (const file of acceptedFiles) {
+        if (
+          file.type.startsWith("image/") ||
+          file.name.toLowerCase().endsWith(".heic")
+        ) {
+          const convertedFile = await convertHeicToJpeg(file);
+          if (convertedFile) {
+            validFiles.push(convertedFile);
+          } else {
+            invalidFiles.push(file);
+          }
         } else {
           invalidFiles.push(file);
         }
-      });
-
-      if (invalidFiles.length > 0) {
-        toast.error("Some files are not valid images and were not uploaded.");
       }
 
+      toast.dismiss("processing");
+
+      if (invalidFiles.length > 0) {
+        toast.error(
+          "Some files are not valid images or couldn't be converted and were not uploaded."
+        );
+      }
       if (validFiles.length > 0) {
+        toast.success(`Successfully processed ${validFiles.length} file(s)`);
         onUpload(validFiles);
       }
     },

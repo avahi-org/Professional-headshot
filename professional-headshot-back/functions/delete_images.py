@@ -10,7 +10,7 @@ class DeleteImages:
     def process(self):
         command_list = ['rm', '-r']
         # command_list.extend(self.images)
-        command_list.extend(self.folder)
+        command_list.append(self.folder)
 
         subprocess.run(command_list)
 

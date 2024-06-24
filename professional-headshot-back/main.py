@@ -4,6 +4,7 @@ import json
 import threading
 import secrets
 import re
+import time
 from flask_cors import CORS
 from functions.run_training import RunTraining
 from functions.generate_images import GenerateImages
@@ -123,6 +124,8 @@ def generate_images_thread(
         job_id=job_id,
         custom_path=user_folder
     ).process().get()
+
+    time.sleep(120)
 
     """
     Get the path for the generated images

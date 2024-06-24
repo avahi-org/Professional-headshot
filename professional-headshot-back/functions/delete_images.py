@@ -4,11 +4,13 @@ import subprocess
 
 @dataclass
 class DeleteImages:
-    images: list
+    # images: list
+    folder: str
 
     def process(self):
         command_list = ['rm', '-r']
-        command_list.extend(self.images)
+        # command_list.extend(self.images)
+        command_list.extend(self.folder)
 
         subprocess.run(command_list)
 

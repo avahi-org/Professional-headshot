@@ -108,10 +108,12 @@ def generate_images():
     bucket_name = 'backend-professional-headshot-test-avahi'
     object_prefix = f"{user_id}-{e_mail}/generated-images/"
     prompt = f"sks {classname} "  + prompt
+    temp_folder = f"{user_id}-{e_mail}"
     GenerateImages(
         api_key=api_key,
         prompt=prompt,
-        job_id=job_id
+        job_id=job_id,
+        working_dir=temp_folder
     ).process().get()
 
     """
@@ -119,7 +121,7 @@ def generate_images():
     """
     directory = os.getcwd()
 
-    folder_path = ''
+    folder_path = f"{temp_folder}/"
     images = GetImages(
         folder_name=folder_path,
         directory=directory
@@ -139,7 +141,7 @@ def generate_images():
         object_prefix=object_prefix
     ).process().get()
 
-    DeleteImages(images=images).process().get()
+    DeleteImages(folder=temp_folder).process().get()
 
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
     print("Image generation and upload is complete")

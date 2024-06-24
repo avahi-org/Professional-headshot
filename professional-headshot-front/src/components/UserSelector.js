@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { setUserId, getUserId } from "../utils/user";
+import { toast } from "react-toastify";
 
-const predefinedUsers = [
-  { value: 1, label: "abel@gmail.com" },
-  { value: 2, label: "gentrit@gmail.com" },
-];
+const predefinedUsers = [];
 
 const getUsersFromLocalStorage = () => {
   const users = localStorage.getItem("users");
@@ -65,6 +63,7 @@ const UserSelector = ({ onUserSelect, onPhoneChange }) => {
       setNewUser("");
       setNextUserId(nextUserId + 1);
       localStorage.setItem("users", JSON.stringify(updatedUsers));
+      toast.success(`User ${newUser} added successfully!`);
     }
   };
 

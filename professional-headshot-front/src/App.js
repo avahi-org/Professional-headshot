@@ -50,6 +50,34 @@ const predefinedPrompts = [
   },
 ];
 
+const testEtaConversion = (etaString) => {
+  const etaParts = etaString.split(":");
+
+  // Extract hours and minutes
+  const hours = parseInt(etaParts[0], 10);
+  const minutes = parseInt(etaParts[1], 10);
+
+  // Extract seconds and milliseconds correctly
+  const secondsWithMillis = etaParts[2];
+  const seconds = parseInt(secondsWithMillis.slice(0, 2), 10); // Take the first two digits for seconds
+  const milliseconds = parseInt(secondsWithMillis.slice(2), 10); // Take the remaining digits for milliseconds
+
+  const etaMillis =
+    (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
+  return etaMillis;
+};
+
+const convertEtaToMillis = (etaString) => {
+  const [hours, minutes, secondsWithMillis] = etaString.split(":");
+
+  // Extract only the first two digits for seconds
+  const seconds = secondsWithMillis.slice(0, 2);
+
+  return (
+    (parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(seconds)) * 1000
+  );
+};
+
 const App = () => {
   const [step, setStep] = useState(1);
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -190,6 +218,7 @@ const App = () => {
       setIsLoading(false);
     }
   };
+
   const handleNextStep = async () => {
     switch (step) {
       case 1:
@@ -203,8 +232,12 @@ const App = () => {
         if (!trainingName) {
           toast.error("Please enter a training name.");
           return;
+        } else if (!uploadedImages.length < 10) {
+          toast.error(
+            "To start training the model, you should upload at least 10 images!"
+          );
+          return;
         }
-
         simulateTraining();
         break;
       case 3:
@@ -258,14 +291,18 @@ const App = () => {
       const data = await response.json();
 
       if (data.eta) {
-        const etaMillis =
-          data.eta.split(":").reduce((acc, time) => 60 * acc + +time) * 1000;
-        setEtaDuration(formatEta(data.eta));
+        const etaMillis = convertEtaToMillis(data.eta);
+        setEtaDuration(etaMillis);
+
+        console.log("etaMillis", etaMillis);
+
+        console.log("data eta", data.eta);
 
         toast.success("Training started successfully.");
 
         // Set the timeout based on the ETA
         setTimeout(() => {
+          console.log("here?!?!? why", etaMillis);
           setIsLoading(false);
           setStep(3);
         }, etaMillis);
@@ -316,6 +353,8 @@ const App = () => {
     setTrainingName("");
     setStep(1);
   };
+
+  console.log("uploadedImages", uploadedImages.length);
 
   return (
     <div className=" container min-h-screen h-full max-w-[2000px] w-full bg-cover bg-[#efefe9] flex flex-col items-center py-10 font-sans">
@@ -395,7 +434,7 @@ const App = () => {
                 <div className="w-full max-w-md">
                   <div className="flex flex-col items-start mb-0">
                     <label className="text-xl font-sans font-semibold text-gray-700 mb-2">
-                      Training Name:
+                      Training name:
                     </label>
                     <input
                       type="text"
@@ -409,7 +448,7 @@ const App = () => {
                 <div className="w-full max-w-md">
                   <div className="flex flex-col items-start mb-12">
                     <label className="text-xl font-sans font-semibold text-gray-700 mb-2">
-                      Model Type:
+                      Model type:
                     </label>
                     <div className="flex flex-wrap justify-center gap-4">
                       {modelTypes.map((type) => (
@@ -431,10 +470,12 @@ const App = () => {
 
                 <div className="w-full max-w-md">
                   <button
-                    disabled={!userId && !trainingName}
+                    disabled={
+                      !userId && !trainingName && uploadedImages.length <= 10
+                    }
                     onClick={handleNextStep}
                     className={`bg-purple-500 font-sans font-semibold text-white w-full py-4 px-6 rounded-2xl transition-transform transform hover:scale-105 ${
-                      !userId && !trainingName
+                      !userId && !trainingName && uploadedImages.length <= 10
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-purple-600"
                     }`}
@@ -445,6 +486,10 @@ const App = () => {
                     onClick={() => {
                       if (userId) {
                         handleSkipStep(3);
+                      } else {
+                        toast.error(
+                          "You should choose a user to advance to the next step!"
+                        );
                       }
                     }}
                     className={`font-sans font-semibold text-blue-500 w-full py-4 px-6 rounded-2xl transition-transform transform text-lg mt-4 text-center ${
@@ -501,7 +546,7 @@ const App = () => {
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={4} // Adjust the number of rows as needed
                 className="bg-white border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl mb-4 w-full sm:w-96 transition-transform transform hover:scale-105 hover:shadow-lg resize-none"
-                placeholder="Enter your prompt here..."
+                placeholder="Prompt description is shown here when selecting a prompt "
               />
             </div>
             <div className="flex items-center justify-center">

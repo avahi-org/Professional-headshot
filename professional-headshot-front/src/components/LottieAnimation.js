@@ -1,39 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Lottie from "react-lottie-player";
-import animationData from "../assets/lottie/reveal-loading.json"; // Replace with your Lottie JSON file path
+import animationData from "../assets/lottie/reveal-loading.json";
 
 const LottieAnimation = ({ countdown, description }) => {
   const [remainingTime, setRemainingTime] = useState(countdown);
 
   useEffect(() => {
-    setRemainingTime(countdown); // Reset remaining time when countdown prop changes
+    setRemainingTime(Math.max(0, countdown)); // Ensure non-negative value
   }, [countdown]);
 
   useEffect(() => {
     if (remainingTime <= 0) return;
 
     const intervalId = setInterval(() => {
-      setRemainingTime((prevTime) => {
-        if (prevTime <= 1000) {
-          clearInterval(intervalId);
-          return 0;
-        }
-        return prevTime - 1000;
-      });
+      setRemainingTime((prevTime) => Math.max(0, prevTime - 1000));
     }, 1000);
 
-    return () => clearInterval(intervalId); // Clear interval on component unmount
+    return () => clearInterval(intervalId);
   }, [remainingTime]);
 
-  const formatTime = (milliseconds) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
+  const formatTime = useMemo(() => {
+    if (remainingTime <= 0) return "";
+
+    const totalSeconds = Math.floor(remainingTime / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    return `${minutes} minute${minutes !== 1 ? "s" : ""} and ${seconds} second${
-      seconds !== 1 ? "s" : ""
-    }`;
-  };
+    const parts = [];
+    if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+    if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+    if (seconds > 0) parts.push(`${seconds} second${seconds !== 1 ? "s" : ""}`);
+
+    return parts.join(", ");
+  }, [remainingTime]);
 
   return (
     <div className="flex flex-col items-center">
@@ -45,9 +45,9 @@ const LottieAnimation = ({ countdown, description }) => {
       />
       <div className="text-2xl text-gray-700 font-semibold mt-10">
         <div className="animate-bounce">{description}</div>
-        {remainingTime > 0 && (
+        {formatTime && (
           <div className="animate-bounce">
-            This may take approximately {formatTime(remainingTime)}.
+            This may take approximately {formatTime}.
           </div>
         )}
       </div>

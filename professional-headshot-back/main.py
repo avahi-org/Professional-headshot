@@ -189,8 +189,7 @@ def generate_images():
 
 
     bucket_name = 'backend-professional-headshot-test-avahi'
-    object_prefix = f"{user_id}-{e_mail}/preview-images/"
-    user_folder = f"{user_id}-{e_mail}"
+    object_prefix = f"{user_id}-{e_mail}/generated-images/"
     prompt = f"sks {classname} "  + prompt
     GenerateImages(
         api_key=api_key,
@@ -203,7 +202,7 @@ def generate_images():
     """
     directory = os.getcwd()
 
-    folder_path = user_folder
+    folder_path = ''
     images = GetImages(
         folder_name=folder_path,
         directory=directory
@@ -213,8 +212,6 @@ def generate_images():
         json.dump(images, f)
 
     print("Training complete")
-
-    local_images = images # Save local path to delete images from local
 
     """
     Upload the obtained images to a temporary S3 object

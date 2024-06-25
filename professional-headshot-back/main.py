@@ -13,6 +13,7 @@ from functions.get_images import GetImages
 from functions.upload_images import UploadImages
 from functions.upload_model_info import UploadModelInfo
 from functions.delete_folder import DeleteFolder
+from functions.count_images import CountImages
 from random import randint
 
 app = Flask(__name__)
@@ -45,10 +46,10 @@ def start_training():
     path = data.get('imagesInBucketPath') + '/'
     bucket_name = 'backend-professional-headshot-test-avahi'
     user_id = str(data.get('userID'))
-    e_mail = re.sub('@*', '', data.get('userEmail'))
+    e_mail = data.get('userEmail')
     phone = data.get('phoneNumber')
-    object_prefix = f"{user_id}-{e_mail}/model-info/"
-    temp_folder = f"{user_id}{e_mail}"
+    object_prefix = f"{e_mail}/model-info/"
+    temp_folder = f"{e_mail}"
 
     # Create temporary folder
     # subprocess.run(['mkdir', temp_folder])
@@ -86,7 +87,7 @@ def start_training():
 async def get_ids():
     data = request.json
     bucket = 'backend-professional-headshot-test-avahi'
-    e_mail = re.sub('@*', '', data.get('userEmail'))
+    e_mail = data.get('userEmail')
     path = f"{str(data.get('userID'))}-{e_mail}/model-info/"
 
     response_dict = (
@@ -109,14 +110,19 @@ def generate_images():
     prompt = data.get('prompt')
     job_id = data.get('jobID')
     classname = data.get('classname')
-    e_mail = re.sub('@*', '', data.get('userEmail'))
+    e_mail = data.get('userEmail')
+    path = e_mail + '/'
     user_id = str(data.get('userID'))
-
-
     bucket_name = 'backend-professional-headshot-test-avahi'
-    object_prefix = f"{user_id}-{e_mail}/generated-images/"
+
+    id_ = (
+        CountImages(BUCKET_NAME=bucket_name, PATH=path, temp_folder='').process().get()
+    )
+
+
+    object_prefix = f"{e_mail}/generated-images-{id_}/"
     prompt = f"sks {classname} "  + prompt
-    temp_folder = f"{user_id}{e_mail}"
+    temp_folder = f"{e_mail}"
     directory = os.getcwd()
     seed = str(randint(1, 15000))
     GenerateImages(

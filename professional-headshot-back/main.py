@@ -10,9 +10,8 @@ from functions.generate_images import GenerateImages
 from functions.get_model_info import GetModelInfo
 from functions.get_images import GetImages
 from functions.upload_images import UploadImages
-from functions.delete_images import DeleteImages
 from functions.upload_model_info import UploadModelInfo
-from functions.get_preview_images import GetPreviewImages
+from functions.delete_folder import DeleteFolder
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
@@ -59,6 +58,9 @@ def start_training():
         .process()
         .get()
     )
+    print(f"""---------------------------------------------------
+{response_json}
+---------------------------------------------------""")
 
     (
         UploadModelInfo(
@@ -141,7 +143,7 @@ def generate_images():
         object_prefix=object_prefix
     ).process().get()
 
-    DeleteImages(folder=temp_folder).process().get()
+    DeleteFolder(folder=temp_folder).process().get()
 
     link_to_images = f"https://{bucket_name}.s3.amazonaws.com/{object_prefix}"
     print("Image generation and upload is complete")

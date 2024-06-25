@@ -88,7 +88,7 @@ async def get_ids():
     data = request.json
     bucket = 'backend-professional-headshot-test-avahi'
     e_mail = data.get('userEmail')
-    path = f"{str(data.get('userID'))}-{e_mail}/model-info/"
+    path = f"{e_mail}/model-info/"
 
     response_dict = (
         GetModelInfo(

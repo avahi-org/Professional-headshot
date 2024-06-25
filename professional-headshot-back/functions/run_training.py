@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functions.get_images import GetImages
 from functions.download_images import DownloadImages
-from functions.delete_images import DeleteImages
+from functions.delete_folder import DeleteFolder
 from functions.get_info import GetInfo
 import subprocess
 import os
@@ -17,6 +17,7 @@ class RunTraining:
     classname: str = "man"
     bucket_name: str = "backend-professional-headshot-test-avahi"
     path: str = "images/"
+    temp_folder: str = "MyTempFolder"
 
     def process(self):
 
@@ -24,7 +25,7 @@ class RunTraining:
         Define the initial values
         """
         directory = os.getcwd()
-        folder_path = ""
+        folder_path = self.temp_folder + '/'
         command_list = ["python", "functions/astria.py",
                         "tune", self.job_name, self.classname]
 
@@ -34,7 +35,8 @@ class RunTraining:
         (
             DownloadImages(
                 BUCKET_NAME=self.bucket_name,
-                PATH=self.path
+                PATH=self.path,
+                temp_folder=self.temp_folder
             )
             .process()
             .get()
@@ -72,7 +74,7 @@ class RunTraining:
         )
 
         (
-            DeleteImages(images=images)
+            DeleteFolder(folder=self.temp_folder)
             .process()
             .get()
         )

@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, Response
 import os
+import subprocess
 import json
 import threading
 import secrets
@@ -42,9 +43,14 @@ def start_training():
     classname = data.get('classname')
     path = data.get('imagesInBucketPath') + '/'
     bucket_name = 'backend-professional-headshot-test-avahi'
+    user_id = str(data.get('userID'))
     e_mail = re.sub('@*', '', data.get('userEmail'))
     phone = data.get('phoneNumber')
-    object_prefix = f"{str(data.get('userID'))}-{e_mail}/model-info/"
+    object_prefix = f"{user_id}-{e_mail}/model-info/"
+    temp_folder = f"{user_id}{e_mail}"
+
+    # Create temporary folder
+    subprocess.run(['mkdir', temp_folder])
 
     # Set API KEY
 
@@ -53,14 +59,12 @@ def start_training():
         RunTraining(
             job_name=job_name,
             classname=classname,
-            path=path
+            path=path,
+            temp_folder=temp_folder
         )
         .process()
         .get()
     )
-    print(f"""---------------------------------------------------
-{response_json}
----------------------------------------------------""")
 
     (
         UploadModelInfo(

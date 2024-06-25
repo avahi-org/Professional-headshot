@@ -13,6 +13,7 @@ class DownloadImages():
 
     BUCKET_NAME: str
     PATH: str
+    temp_folder: str
 
     def process(self):
         s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
@@ -23,7 +24,8 @@ class DownloadImages():
                 if split_object[-1] != '':
                     file = item.key.split(self.PATH)[1]
                     print(file)
-                    my_bucket.download_file(self.PATH + file, file)
+                    my_bucket.download_file(self.PATH + file, f'{self.temp_folder}/{file}')
+
         except botocore.exceptions.ClientError as e: 
             if e.response['Error']['Code'] == "404":
                 print("The object does not exist.")

@@ -30,18 +30,25 @@ class GetImages():
 
     folder_name: str
     directory: str
+    # image_extensions: list[str] = field(
+    #     default_factory=lambda: ['*.j*', '*.png', '*.gif', '*.bmp', '*.tiff', '*.heic'])
     image_extensions: list[str] = field(
-        default_factory=lambda: ['*.j*', '*.png', '*.gif', '*.bmp', '*.tiff', '*.heic'])
+        default_factory=lambda: ['.jpg', '.png', '.gif', '.bmp', '.tiff', '.heic', 'jpeg'])
     images_path: list[str] = field(default_factory=list)
 
     def process(self):
         self.directory += '/' + self.folder_name
         print(self.directory)
+        # for extension in self.image_extensions:
+        #     self.images_path.extend(
+        #         glob.glob(
+        #             os.path.join(
+        #                 self.directory, extension)))
         for extension in self.image_extensions:
-            self.images_path.extend(
-                glob.glob(
-                    os.path.join(
-                        self.directory, extension)))
+            for root, dirs, files in os.walk(self.directory):
+                for file in files:
+                    if file.endswith(extension):
+                        self.images_path.append(os.path.join(root, file))
         return self
 
     def get(self):

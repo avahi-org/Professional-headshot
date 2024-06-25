@@ -13,6 +13,7 @@ from functions.get_images import GetImages
 from functions.upload_images import UploadImages
 from functions.upload_model_info import UploadModelInfo
 from functions.delete_folder import DeleteFolder
+from random import randint
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
@@ -50,7 +51,8 @@ def start_training():
     temp_folder = f"{user_id}{e_mail}"
 
     # Create temporary folder
-    subprocess.run(['mkdir', temp_folder])
+    # subprocess.run(['mkdir', temp_folder])
+    os.makedirs(temp_folder)
 
     # Set API KEY
 
@@ -115,17 +117,19 @@ def generate_images():
     object_prefix = f"{user_id}-{e_mail}/generated-images/"
     prompt = f"sks {classname} "  + prompt
     temp_folder = f"{user_id}{e_mail}"
+    directory = os.getcwd()
+    seed = str(randint(1, 15000))
     GenerateImages(
         api_key=api_key,
         prompt=prompt,
         job_id=job_id,
-        working_dir=temp_folder
+        working_dir=temp_folder,
+        seed=seed
     ).process().get()
 
     """
     Get the path for the generated images
     """
-    directory = os.getcwd()
 
     folder_path = f"{temp_folder}/"
     images = GetImages(

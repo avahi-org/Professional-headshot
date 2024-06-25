@@ -9,9 +9,9 @@ class GenerateImages:
     api_key: str
     job_id: int
     working_dir: str
+    seed: str
     prompt: str = 'sks man headshot of a banking professional wearing a nice suit'
     steps: str = '80'
-    seed: str = str(randint(1, 15000))
 
     def process(self):
         # Set API KEY

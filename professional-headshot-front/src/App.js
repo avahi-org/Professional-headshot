@@ -352,14 +352,29 @@ const App = () => {
                   <Preview images={uploadedImages} onRemove={handleRemove} />
                 )}
                 <div className="flex flex-col items-center justify-center mt-4">
-                  {uploadedImages.length >= 10 && (
-                    <button
-                      onClick={handleNextStep}
-                      className="bg-purple-500 text-white text-lg font-sans w-80 py-3 px-6 rounded-2xl font-semibold hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
-                    >
-                      Next
-                    </button>
-                  )}
+                  <button
+                    onClick={handleNextStep}
+                    disabled={uploadedImages.length < 10}
+                    className={`
+                          w-80 py-3 px-6 mt-4 mb-2
+                          text-lg font-sans font-semibold
+                          rounded-2xl
+                          transition-all duration-300 ease-in-out
+                          ${
+                            uploadedImages.length >= 10
+                              ? "bg-purple-500 text-white hover:bg-purple-600 hover:shadow-lg transform hover:scale-105"
+                              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          }
+                          focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50
+                    `}
+                  >
+                    {uploadedImages.length >= 10
+                      ? "Next"
+                      : `Upload ${10 - uploadedImages.length} more image${
+                          uploadedImages.length === 9 ? "" : "s"
+                        }`}
+                  </button>
+
                   <p
                     onClick={() => handleSkipStep(2)}
                     className="text-blue-500 text-lg font-sans w-80 py-3 px-6 rounded-2xl font-semibold transition-transform transform mt-2 mb-2 cursor-pointer hover:underline"

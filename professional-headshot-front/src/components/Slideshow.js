@@ -49,7 +49,7 @@ const Slideshow = ({ images, loading }) => {
             <img
               src={image}
               alt={`Generated headshot ${index}`}
-              className="w-full h-96 object-cover rounded-lg shadow-lg"
+              className="w-full h-[500px] object-cover rounded-lg shadow-lg"
             />
           </div>
         ))}

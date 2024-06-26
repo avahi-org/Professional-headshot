@@ -79,7 +79,7 @@ const UserSelector = ({ onUserSelect, onPhoneChange }) => {
         placeholder="Select your user email"
         isClearable
         isSearchable
-        className="mb-4 w-full"
+        className="mb-4 w-full react-select-container text-base sm:text-lg"
       />
       <div className="flex items-center w-full mb-4">
         <input
@@ -87,11 +87,11 @@ const UserSelector = ({ onUserSelect, onPhoneChange }) => {
           value={newUser}
           onChange={(e) => setNewUser(e.target.value)}
           placeholder="Enter new user email"
-          className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg mr-2 w-full transition-transform transform hover:scale-105 hover:shadow-lg"
+          className="bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg mr-2 w-full transition-transform transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
         <button
           onClick={handleAddUser}
-          className="bg-purple-500 text-white py-2 px-6 rounded-2xl font-semibold hover:bg-purple-600 transition-transform transform hover:scale-105"
+          className="bg-purple-500 text-white py-3 px-6 rounded-2xl font-semibold hover:bg-purple-600 transition-transform transform hover:scale-105"
         >
           Add
         </button>
@@ -102,7 +102,7 @@ const UserSelector = ({ onUserSelect, onPhoneChange }) => {
           value={phoneNumber}
           onChange={handlePhoneNumberChange}
           placeholder="Enter phone number (optional)"
-          className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg w-full transition-transform transform hover:scale-105 hover:shadow-lg"
+          className="bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg w-full transition-transform transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
       </div>
     </div>

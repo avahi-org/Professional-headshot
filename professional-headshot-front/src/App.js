@@ -69,7 +69,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (step === 3 && userId?.value) {
+    if (step === 2 && userId?.value) {
       const loadData = async () => {
         try {
           const idsData = await fetchIds(
@@ -144,7 +144,7 @@ const App = () => {
       userEmail: userId?.label,
     };
     setIsLoading(true);
-    setStep(4); // Move to step 4 immediately to show loading animation
+    setStep(3); // Move to step 3 immediately to show loading animation
 
     try {
       const response = await fetch(
@@ -187,25 +187,23 @@ const App = () => {
   const handleNextStep = async () => {
     switch (step) {
       case 1:
-        if (uploadedImages.length >= 10) {
-          await handleUploadAWS(); // Upload images to AWS before proceeding
-        } else {
+        if (uploadedImages.length < 10) {
           toast.error("Please upload at least 10 images.");
+          return;
         }
-        break;
-      case 2:
         if (!trainingName) {
           toast.error("Please enter a training name.");
           return;
-        } else if (uploadedImages.length < 10) {
-          toast.error(
-            "To start training the model, you should upload at least 10 images!"
-          );
+        }
+        if (!userId) {
+          toast.error("Please select a user.");
           return;
         }
+        setIsLoading(true);
+        await handleUploadAWS(); // Upload images to AWS
         simulateTraining();
         break;
-      case 3:
+      case 2:
         await startGeneratingPhotos();
         break;
       default:
@@ -268,7 +266,7 @@ const App = () => {
         // Set the timeout based on the ETA
         setTimeout(() => {
           setIsLoading(false);
-          setStep(3);
+          setStep(2);
         }, etaMillis);
       } else {
         toast.error("Failed to get ETA from the server.");
@@ -282,24 +280,27 @@ const App = () => {
   };
 
   const handleUploadAWS = async () => {
-    setIsLoading(true);
     const bucketName = process.env.REACT_APP_AWS_BUCKET_NAME;
     const newImages = [];
 
-    for (const image of uploadedImages) {
-      try {
+    try {
+      for (const image of uploadedImages) {
         const file = await fetch(image).then((r) => r.blob());
         const { url } = await uploadFileToS3(file, folderName, bucketName);
         newImages.push(url);
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        toast.error("Error uploading file.");
       }
-    }
 
-    setIsLoading(false);
-    toast.success("Images uploaded successfully.");
-    setStep(2);
+      if (newImages.length === uploadedImages.length) {
+        toast.success("Images uploaded successfully.");
+      } else {
+        throw new Error("Not all images were uploaded successfully.");
+      }
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      toast.error("Error uploading files. Please try again.");
+      setIsLoading(false);
+      throw error; // Re-throw to prevent training from starting
+    }
   };
 
   const handleIdChange = (selectedOption) => {
@@ -320,228 +321,236 @@ const App = () => {
 
   return (
     <div className=" container min-h-screen h-full max-w-[2000px] w-full bg-cover bg-[#efefe9] flex flex-col items-center py-10 font-sans">
-      <h1 className="md:text-5xl sm:text-4xl text-3xl font-sans font-normal text-gray-700 mb-12 mt-2">
-        Professional Headshot
-      </h1>
+      <header className="w-full flex justify-center items-center mb-12 mt-2">
+        <div className="flex items-center">
+          <img
+            src="https://awsmp-logos.s3.amazonaws.com/69db6b10-223d-47a0-bb38-e501668f9188/6bac33d0ef3ecb9cc4e75f267d1ce3bf.png"
+            alt="Logo"
+            className="h-12 w-auto"
+          />
+          <h1 className="md:text-5xl sm:text-4xl text-3xl font-sans font-normal text-gray-700">
+            Professional Headshot
+          </h1>
+        </div>
+      </header>
 
       <div className="w-full flex mx-auto px-4">
         <Breadcrumb currentStep={step} onGoBack={handlePreviousStep} />
         <ProgressIndicator currentStep={step} onGoBack={handlePreviousStep} />
       </div>
       <div className="container">
-        {step === 1 && (
-          <div className="card text-center">
-            <p className="mb-10 text-2xl sm:text-3xl font-sans font-semibold text-gray-700">
-              Step 1: Upload 10 or more Images
-            </p>
-            {isLoading ? (
-              <LottieAnimation description={"Uploading images..."} />
-            ) : (
-              <>
-                <div className="progress-bar mx-auto px-4 sm:px-0 flex justify-center items-center">
-                  <ProgressBar
-                    progress={progress}
-                    uploadedImages={uploadedImages}
-                  />
-                </div>
-                <div className="sm:mx-auto mx-4">
-                  <Upload onUpload={handleUpload} />
-                </div>
+        {step === 1 &&
+          (isLoading ? (
+            <LottieAnimation
+              countdown={etaDuration}
+              description={
+                etaDuration ? "Training in progress..." : "Uploading images..."
+              }
+            />
+          ) : (
+            <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-lg">
+              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+                Prepare Model & Upload Images
+              </h2>
 
-                {uploadedImages.length >= 1 && (
-                  <Preview images={uploadedImages} onRemove={handleRemove} />
-                )}
-                <div className="flex flex-col items-center justify-center mt-4">
-                  <button
-                    onClick={handleNextStep}
-                    disabled={uploadedImages.length < 10}
-                    className={`
-                          w-80 py-3 px-6 mt-4 mb-2
-                          text-lg font-sans font-semibold
-                          rounded-2xl
-                          transition-all duration-300 ease-in-out
-                          ${
-                            uploadedImages.length >= 10
-                              ? "bg-purple-500 text-white hover:bg-purple-600 hover:shadow-lg transform hover:scale-105"
-                              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          }
-                          focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50
-                    `}
-                  >
-                    {uploadedImages.length >= 10
-                      ? "Next"
-                      : `Upload ${10 - uploadedImages.length} more image${
-                          uploadedImages.length === 9 ? "" : "s"
-                        }`}
-                  </button>
-
-                  <p
-                    onClick={() => handleSkipStep(2)}
-                    className="text-blue-500 text-lg font-sans w-80 py-3 px-6 rounded-2xl font-semibold transition-transform transform mt-2 mb-2 cursor-pointer hover:underline"
-                  >
-                    Skip
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-        {step === 2 && (
-          <div className="card text-center max-w-3xl mx-auto">
-            <div className="w-full ">
-              <p className="mb-14 text-2xl sm:text-3xl  w-full font-sans font-semibold text-gray-700 text-center">
-                Step 2: Model Selection
-              </p>
-            </div>
-
-            {isLoading ? (
-              <LottieAnimation
-                countdown={etaDuration}
-                description={"Training the model..."}
-              />
-            ) : (
-              <div className="flex flex-col items-center w-full space-y-6">
-                <div className="w-full max-w-md">
+              <div className="space-y-8">
+                {/* User Selection */}
+                <div className="mb-6">
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">
+                    Select User
+                  </label>
                   <UserSelector
                     onUserSelect={handleUserSelect}
                     onPhoneChange={handlePhoneNumberChange}
                   />
                 </div>
 
-                <div className="w-full max-w-md">
-                  <div className="flex flex-col items-start mb-0">
-                    <label className="text-xl font-sans font-semibold text-gray-700 mb-2">
-                      Training name:
-                    </label>
-                    <input
-                      type="text"
-                      value={trainingName}
-                      onChange={handleTrainingNameChange}
-                      className="bg-white font-sans font-medium border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl w-full transition-transform transform hover:scale-105 hover:shadow-lg"
+                {/* Training Name */}
+                <div className="mb-6">
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">
+                    Training Name
+                  </label>
+                  <input
+                    type="text"
+                    value={trainingName}
+                    onChange={handleTrainingNameChange}
+                    className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-150 ease-in-out"
+                    placeholder="Enter training name"
+                  />
+                </div>
+
+                {/* Model Type Selection */}
+                <div className="mb-6">
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">
+                    Model Type
+                  </label>
+                  <div className="flex flex-wrap justify-start gap-4">
+                    {modelTypes.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => handleModelTypeChange(type)}
+                        className={`py-2 px-6 text-lg font-medium rounded-full transition-all duration-200 ${
+                          modelType === type
+                            ? "bg-purple-500 text-white shadow-md"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Image Upload Section */}
+                <div className="mt-8 md:p-6 p-0 bg-gray-50 rounded-xl border border-gray-200">
+                  <h3 className="text-2xl font-semibold text-center text-gray-800 md:mt-0 mt-4 mb-4">
+                    Upload Images
+                  </h3>
+                  <div className="progress-bar mx-auto px-4 sm:px-0 flex justify-center items-center">
+                    <ProgressBar
+                      progress={progress}
+                      uploadedImages={uploadedImages}
                     />
                   </div>
-                </div>
-
-                <div className="w-full max-w-md">
-                  <div className="flex flex-col items-start mb-12">
-                    <label className="text-xl font-sans font-semibold text-gray-700 mb-2">
-                      Model type:
-                    </label>
-                    <div className="flex flex-wrap justify-center gap-4">
-                      {modelTypes.map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => handleModelTypeChange(type)}
-                          className={`py-4 px-8 font-sans font-medium text-xl rounded-lg transition-transform transform hover:scale-105 hover:shadow-lg ${
-                            modelType === type
-                              ? "bg-purple-500 text-white"
-                              : "bg-white border border-purple-500 text-purple-500"
-                          }`}
-                        >
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="sm:mx-auto mx-4">
+                    <Upload onUpload={handleUpload} />
                   </div>
+
+                  {uploadedImages.length >= 1 && (
+                    <Preview images={uploadedImages} onRemove={handleRemove} />
+                  )}
                 </div>
 
-                <div className="w-full max-w-md">
+                {/* Action Buttons */}
+                <div className="mt-8 space-y-4">
                   <button
-                    disabled={
-                      !userId && !trainingName && uploadedImages.length <= 10
-                    }
                     onClick={handleNextStep}
-                    className={`bg-purple-500 font-sans font-semibold text-white w-full py-4 px-6 rounded-2xl transition-transform transform hover:scale-105 ${
-                      !userId && !trainingName && uploadedImages.length <= 10
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-purple-600"
-                    }`}
+                    disabled={
+                      uploadedImages.length < 10 || !userId || !trainingName
+                    }
+                    className={`
+              w-full py-4 px-6
+              text-xl font-semibold
+              rounded-full
+              transition-all duration-300 ease-in-out
+              ${
+                uploadedImages.length >= 10 && userId && trainingName
+                  ? "bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }
+              focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50
+            `}
                   >
-                    Next
+                    {uploadedImages.length >= 10 && userId && trainingName
+                      ? "Upload Images & Start Training"
+                      : "Complete All Fields to Continue"}
                   </button>
-                  <p
+
+                  <button
                     onClick={() => {
                       if (userId) {
-                        handleSkipStep(3);
+                        handleSkipStep(2);
                       } else {
                         toast.error(
                           "You should choose a user to advance to the next step!"
                         );
                       }
                     }}
-                    className={`font-sans font-semibold text-blue-500 w-full py-4 px-6 rounded-2xl transition-transform transform text-lg mt-4 text-center ${
-                      !userId
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:text-blue-600 hover:scale-105 cursor-pointer hover:underline"
-                    }`}
-                    disabled={!userId}
+                    className="w-full py-3 px-6 text-lg font-semibold text-purple-500 bg-white border border-purple-500 rounded-full hover:bg-purple-50 transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
                   >
                     Skip
-                  </p>
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          ))}
+        {step === 2 &&
+          (isLoading ? (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+              <div className="bg-white p-8 rounded-xl shadow-lg">
+                <LottieAnimation description="Generating photos..." />
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-lg">
+              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+                Generate Training Model
+              </h2>
+
+              <div className="space-y-8">
+                {/* Model of training */}
+                <div className="mb-6">
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">
+                    Model of Training
+                  </label>
+                  <Select
+                    value={selectedId}
+                    onChange={handleIdChange}
+                    options={idsOptions}
+                    placeholder="Select a training model"
+                    className="text-lg"
+                    classNamePrefix="react-select"
+                  />
+                </div>
+
+                {/* Prompt Selection */}
+                <div className="mb-6">
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">
+                    Select Prompt
+                  </label>
+                  <Select
+                    value={predefinedPrompts.find(
+                      (option) => option.value === prompt
+                    )}
+                    onChange={handlePromptChange}
+                    options={predefinedPrompts}
+                    placeholder="Select a prompt"
+                    className="text-lg"
+                    classNamePrefix="react-select"
+                  />
+                </div>
+
+                {/* Prompt Display */}
+                <div className="mb-6">
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">
+                    Prompt Description
+                  </label>
+                  <textarea
+                    value={prompt}
+                    disabled={true}
+                    rows={4}
+                    className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-150 ease-in-out resize-none"
+                    placeholder="Prompt description is shown here when selecting a prompt"
+                  />
+                </div>
+
+                {/* Action Button */}
+                <div className="mt-8">
+                  <button
+                    onClick={handleNextStep}
+                    disabled={!selectedId}
+                    className={`
+             w-full py-4 px-6
+             text-xl font-semibold
+             rounded-full
+             transition-all duration-300 ease-in-out
+             ${
+               selectedId
+                 ? "bg-purple-500 text-white hover:bg-purple-600 shadow-lg hover:shadow-xl"
+                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
+             }
+             focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50
+           `}
+                  >
+                    {selectedId
+                      ? "Generate Photos"
+                      : "Select a Model to Continue"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         {step === 3 && (
-          <div className="w-full text-center items-center">
-            <p className="mb-6 sm:text-3xl text-start sm:text-center text-2xl font-semibold text-gray-700">
-              Step 3: Generate Training Model
-            </p>
-            <div className="flex flex-col items-center mb-6 w-full">
-              <label className="mt-6 mb-4 text-xl font-sans font-semibold text-gray-700 w-full sm:w-96 text-start">
-                Model of training
-              </label>
-              <div className="w-full sm:w-96 mb-4">
-                <Select
-                  value={selectedId}
-                  onChange={handleIdChange}
-                  options={idsOptions}
-                  placeholder="Select a training model"
-                  className="text-lg"
-                  classNamePrefix="react-select"
-                />
-              </div>
-              <label className="mt-6 mb-4 text-xl font-sans font-semibold text-gray-700 w-full sm:w-96 text-start">
-                Enter your prompt:
-              </label>
-              <div className="w-full sm:w-96 mb-4">
-                <Select
-                  value={predefinedPrompts.find(
-                    (option) => option.value === prompt
-                  )}
-                  onChange={handlePromptChange}
-                  options={predefinedPrompts}
-                  placeholder="Select a prompt"
-                  className="text-lg"
-                  classNamePrefix="react-select"
-                />
-              </div>
-              <textarea
-                value={prompt}
-                disabled={true}
-                onChange={(e) => setPrompt(e.target.value)}
-                rows={4} // Adjust the number of rows as needed
-                className="bg-white border border-gray-300 text-gray-700 py-4 px-6 rounded-lg text-xl mb-4 w-full sm:w-96 transition-transform transform hover:scale-105 hover:shadow-lg resize-none"
-                placeholder="Prompt description is shown here when selecting a prompt "
-              />
-            </div>
-            <div className="flex items-center justify-center">
-              <button
-                onClick={handleNextStep}
-                className={`bg-purple-500 text-white font-semibold w-full sm:w-96 py-4 text-lg px-6 rounded-2xl transition-transform transform hover:scale-105 mt-4 mb-2 ${
-                  !selectedId
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-purple-600"
-                }`}
-                disabled={!selectedId}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-        {step === 4 && (
           <div className="card text-center">
             {isLoading ? (
               <LottieAnimation
@@ -550,12 +559,52 @@ const App = () => {
             ) : (
               <>
                 <Slideshow images={generatedImages} loading={isLoading} />
-                <div className="flex flex-col items-center justify-center mt-4">
+                <div className="flex flex-col items-center justify-center mt-8">
                   <button
                     onClick={handleReset}
-                    className="bg-purple-500 text-white  font-sans font-semibold w-full sm:w-52 py-4 text-lg px-6 rounded-2xl hover:bg-purple-600 transition-transform transform hover:scale-105 mt-4 mb-2"
+                    className="
+              relative
+              overflow-hidden
+              bg-gradient-to-r from-purple-500 to-indigo-600
+              text-white
+              font-sans
+              font-semibold
+              w-full sm:w-64
+              py-4
+              text-lg
+              px-6
+              rounded-full
+              shadow-lg
+              hover:shadow-xl
+              transition-all
+              duration-300
+              ease-in-out
+              transform
+              hover:scale-105
+              focus:outline-none
+              focus:ring-2
+              focus:ring-purple-500
+              focus:ring-opacity-50
+            "
                   >
-                    Reset
+                    <span className="relative z-10">Reset & Start Over</span>
+                    <span className="absolute inset-0 bg-white opacity-0 hover:opacity-20 transition-opacity duration-300"></span>
+                    <span className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                      <svg
+                        className="w-6 h-6 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </span>
                   </button>
                 </div>
               </>

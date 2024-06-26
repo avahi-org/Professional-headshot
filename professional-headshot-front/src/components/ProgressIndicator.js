@@ -5,10 +5,9 @@ import { ArrowLeftIcon } from "@heroicons/react/solid";
 const ProgressIndicator = ({ currentStep, onGoBack }) => {
   const steps = useMemo(
     () => [
-      { id: 1, name: "Upload & Review Images" },
-      { id: 2, name: "Model Selection" },
-      { id: 3, name: "Generate Training Model" },
-      { id: 4, name: "Summary" },
+      { id: 1, name: "Prepare Model & Upload Images" },
+      { id: 2, name: "Generate Training Model" },
+      { id: 3, name: "Summary" },
     ],
     []
   );

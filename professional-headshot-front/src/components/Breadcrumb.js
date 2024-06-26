@@ -5,10 +5,9 @@ import { useSpring, animated } from "@react-spring/web";
 const Breadcrumb = ({ currentStep, onGoBack, totalSteps }) => {
   const steps = useMemo(
     () => [
-      { id: 1, name: "Upload & Review Images" },
-      { id: 2, name: "Model Selection" },
-      { id: 3, name: "Generate Training Model" },
-      { id: 4, name: "Summary" },
+      { id: 1, name: "Prepare Model & Upload Images" },
+      { id: 2, name: "Generate Training Model" },
+      { id: 3, name: "Summary" },
     ],
     []
   );
@@ -61,7 +60,7 @@ const Breadcrumb = ({ currentStep, onGoBack, totalSteps }) => {
                   </span>
                   {index !== steps.length - 1 && (
                     <svg
-                      className="w-6 h-6 text-gray-300 ml-4"
+                      className="w-6 h-6 text-gray-300 ml-2 mr-2"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -79,7 +78,7 @@ const Breadcrumb = ({ currentStep, onGoBack, totalSteps }) => {
           {currentStep > 1 && (
             <button
               onClick={onGoBack}
-              className="mt-4 flex items-start ml-8 text-purple-500 hover:text-purple-600 transition"
+              className="mt-4 flex items-start ml-[6.25rem] text-purple-500 hover:text-purple-600 transition"
             >
               <ArrowLeftIcon className="w-6 h-6 mr-2" />
               Go Back

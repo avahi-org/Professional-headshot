@@ -110,7 +110,7 @@ code {
 }
 
 .upload-container {
-  max-width: 500px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 1.5rem;
   border: 2px dashed #007bff;
@@ -121,7 +121,7 @@ code {
 }
 
 .progress-bar {
-  max-width: 500px;
+  max-width: 800px;
   margin: 0 auto;
 }
 

@@ -43,7 +43,7 @@ const LottieAnimation = ({ countdown, description }) => {
         play
         style={{ width: 200, height: 200 }}
       />
-      <div className="text-2xl text-gray-700 font-semibold mt-10">
+      <div className="text-2xl text-gray-700 text-center font-semibold mt-10">
         <div className="animate-bounce">{description}</div>
         {formatTime && (
           <div className="animate-bounce">
